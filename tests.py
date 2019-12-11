@@ -213,6 +213,21 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_function_call(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo('abcd', 1234, spam='ham')
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                spam='ham',
+            )
+            """,
+        )
 
 
 if __name__ == '__main__':

@@ -132,6 +132,11 @@ def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
     return [Position.from_node_start(x) for x in nodes]
 
 
+@node_wrapper(ast.Call)
+def wrap_call(node: ast.Call) -> List[Position]:
+    return node_start_positions(node.args + node.keywords)
+
+
 @node_wrapper(ast.Dict)
 def wrap_dict(node: ast.Dict) -> List[Position]:
     return node_start_positions(node.keys)
@@ -197,7 +202,7 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     end_pos = Position.from_node_end(node)
 
     # TODO: conditional on whether it's already wrapped?
-    if isinstance(node, (ast.Dict, ast.List)):
+    if isinstance(node, (ast.Call, ast.Dict, ast.List)):
         insertions.append((end_pos, ','))
 
     insertions.append((end_pos, wrap))
