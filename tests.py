@@ -61,7 +61,7 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
-    def test_nested_dict(self) -> None:
+    def test_ignores_nested_dict(self) -> None:
         self.assertTransform(
             1,
             8,
@@ -73,6 +73,84 @@ class TestWrapper(unittest.TestCase):
                 'key': 1234,
                 'other': {'bar': 5678},
             }
+            """,
+        )
+
+    def test_wraps_nested_dict_only(self) -> None:
+        self.assertTransform(
+            1,
+            38,
+            """
+            foo = {'key': 1234, 'other': {'bar': 5678}}
+            """,
+            """
+            foo = {'key': 1234, 'other': {
+                'bar': 5678,
+            }}
+            """,
+        )
+
+    def test_position_at_start(self) -> None:
+        self.assertTransform(
+            1,
+            9,
+            """
+            foo = {'abcd': 1234}
+            #      ^
+            """,
+            """
+            foo = {
+                'abcd': 1234,
+            }
+            #      ^
+            """,
+        )
+
+    def test_position_on_leaf_key(self) -> None:
+        self.assertTransform(
+            1,
+            12,
+            """
+            foo = {'abcd': 1234}
+            #         ^
+            """,
+            """
+            foo = {
+                'abcd': 1234,
+            }
+            #         ^
+            """,
+        )
+
+    def test_position_on_leaf_value(self) -> None:
+        self.assertTransform(
+            1,
+            18,
+            """
+            foo = {'abcd': 1234}
+            #               ^
+            """,
+            """
+            foo = {
+                'abcd': 1234,
+            }
+            #               ^
+            """,
+        )
+
+    def test_position_in_space(self) -> None:
+        self.assertTransform(
+            1,
+            17,
+            """
+            foo = {'abcd':   1234}
+            #              ^
+            """,
+            """
+            foo = {
+                'abcd':   1234,
+            }
+            #              ^
             """,
         )
 

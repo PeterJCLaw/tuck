@@ -5,7 +5,7 @@ import difflib
 import argparse
 import tokenize
 import functools
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 import asttokens
 
@@ -54,15 +54,14 @@ class NodeFinder(ast.NodeVisitor):
 
         self.node_stack = []  # type: List[ast.AST]
 
-        # A copy of the node stack with the desired node as the last entry
-        self.found = None  # type: Optional[List[ast.AST]]
+        self.found = False
 
     @property
     def found_node(self) -> ast.AST:
         if not self.found:
             raise ValueError("No node found!")
 
-        return self.found[-1]
+        return self.node_stack[-1]
 
     def get_indent_size(self) -> int:
         if not self.found:
@@ -70,37 +69,48 @@ class NodeFinder(ast.NodeVisitor):
 
         # Ideally the first match on the given line
         found_node = self.found_node
-        for node in self.found:
+        for node in self.node_stack:
             position = Position.from_node_start(node)
             if position.line == found_node.lineno:
                 return position.col
 
         # Fall back to the most recent column
-        return self.found[-1].col_offset
+        return self.node_stack[-1].col_offset
 
     def generic_visit(self, node):
-        if self.found is not None:
+        if self.found:
             return
 
         if not hasattr(node, 'lineno'):
             super().generic_visit(node)
             return
 
-        position = Position.from_node_start(node)
+        start = Position.from_node_start(node)
+        end = Position.from_node_end(node)
 
-        if position < self.target_position:
-            # we're on the path to finding the desired node
-            self.node_stack.append(node)
+        if end < self.target_position:
+            # we're clear before the target
+            return
 
-            super().generic_visit(node)
+        if start > self.target_position:
+            # we're clear after the target
+            return
 
-            if self.found is None:
-                # we're not actually in the stack to the desired node
+        # we're on the path to finding the desired node
+        self.node_stack.append(node)
+
+        super().generic_visit(node)
+
+        if not self.found:
+            has_children = bool(tuple(ast.iter_child_nodes(node)))
+            if not has_children:
+                # we're the bottom node which contains the target position and
+                # we have no children. We are therefore a leaf and should be
+                # discarded.
                 self.node_stack.pop()
 
-        else:
-            # we're the first node which is after the desired one
-            self.found = self.node_stack[:]
+        self.found = True
+
 
 
 IGNORE_TOKEN_TYPES = set((
