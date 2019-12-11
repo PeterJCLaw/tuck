@@ -52,17 +52,17 @@ class NodeFinder(ast.NodeVisitor):
     def __init__(self, position: Position) -> None:
         self.target_position = position
 
-        self.position_stack = []  # type: List[Tuple[Position, ast.AST]]
+        self.node_stack = []  # type: List[ast.AST]
 
-        # A copy of the position stack with the desired node as the last entry
-        self.found = None  # type: Optional[List[Tuple[Position, ast.AST]]]
+        # A copy of the node stack with the desired node as the last entry
+        self.found = None  # type: Optional[List[ast.AST]]
 
     @property
     def found_node(self) -> ast.AST:
         if not self.found:
             raise ValueError("No node found!")
 
-        return self.found[-1][1]
+        return self.found[-1]
 
     def get_indent_size(self) -> int:
         if not self.found:
@@ -70,13 +70,13 @@ class NodeFinder(ast.NodeVisitor):
 
         # Ideally the first match on the given line
         found_node = self.found_node
-        for _, node in self.found:
+        for node in self.found:
             position = Position.from_node_start(node)
             if position.line == found_node.lineno:
                 return position.col
 
         # Fall back to the most recent column
-        return self.found[-1][0].col
+        return self.found[-1].col_offset
 
     def generic_visit(self, node):
         if self.found is not None:
@@ -90,17 +90,17 @@ class NodeFinder(ast.NodeVisitor):
 
         if position < self.target_position:
             # we're on the path to finding the desired node
-            self.position_stack.append((position, node))
+            self.node_stack.append(node)
 
             super().generic_visit(node)
 
             if self.found is None:
                 # we're not actually in the stack to the desired node
-                self.position_stack.pop()
+                self.node_stack.pop()
 
         else:
             # we're the first node which is after the desired one
-            self.found = self.position_stack[:]
+            self.found = self.node_stack[:]
 
 
 IGNORE_TOKEN_TYPES = set((
