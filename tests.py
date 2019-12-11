@@ -229,6 +229,61 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_function_definition(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(tokens, position: Optional[int]) -> Optional[str]:
+                pass
+            """,
+            """
+            def foo(
+                tokens,
+                position: Optional[int],
+            ) -> Optional[str]:
+                pass
+            """,
+        )
+
+    def test_function_definition_with_kwarg_only(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(tokens, position: Optional[int], *, bar: bytes) -> Optional[str]:
+                pass
+            """,
+            """
+            def foo(
+                tokens,
+                position: Optional[int],
+                *,
+                bar: bytes
+            ) -> Optional[str]:
+                pass
+            """,
+        )
+
+    def test_function_definition_args_kwargs(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(first, *args, second, **kwargs) -> Optional[str]:
+                pass
+            """,
+            """
+            def foo(
+                first,
+                *args,
+                second,
+                **kwargs
+            ) -> Optional[str]:
+                pass
+            """,
+        )
+
 
 if __name__ == '__main__':
     unittest.main(__name__)

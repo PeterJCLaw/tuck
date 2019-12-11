@@ -188,6 +188,45 @@ def wrap_dict_comp(asttokens: ASTTokens, node: ast.DictComp) -> WrappingSummary:
     return summary
 
 
+@node_wrapper(ast.FunctionDef)
+def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSummary:
+    positions = node_start_positions(node.args.args)
+
+    if node.args.vararg:
+        # Account for the * before the name
+        pos = Position.from_node_start(node.args.vararg)
+        positions.append(Position(pos.line, pos.col - 1))
+
+    if node.args.kwonlyargs:
+        # Account for the unnamed *
+        if not node.args.vararg:
+            comma = asttokens.prev_token(node.args.kwonlyargs[0].first_token)
+            args_star = asttokens.prev_token(comma)
+            positions.append(Position(*args_star.start))
+
+        positions += node_start_positions(node.args.kwonlyargs)
+
+    if node.args.kwarg:
+        # Account for the ** before the name
+        pos = Position.from_node_start(node.args.kwarg)
+        positions.append(Position(pos.line, pos.col - 2))
+
+    summary = [
+        (Position(pos.line, pos.col), MutationType.WRAP_INDENT)
+        for pos in positions
+    ]
+
+    close_paren = asttokens.next_token(node.args.last_token)
+    args_end = Position(*close_paren.start)
+
+    if not (node.args.kwonlyargs or node.args.kwarg):
+        summary.append((args_end, MutationType.TRAILING_COMMA))
+
+    summary.append((args_end, MutationType.WRAP))
+
+    return summary
+
+
 @node_wrapper(ast.List)
 def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
     summary = wrap_node_start_positions(node.elts)

@@ -19,6 +19,19 @@ bar_comp = [str(x) for x in bar]
 
 foo('abcd', 1234, spam='ham')
 
-# def search_for_preceding_token(tokens: List[tokenize.TokenInfo], position: Position) -> Optional[tokenize.TokenInfo]:
+# Function definition
+
+
+def simple(tokens: List[str], position: Optional[int]) -> Optional[str]:
+    pass
+
+
+def has_kwarg_only(tokens, position: Optional[int], *, bar: bytes) -> Optional[str]:
+    pass
+
+
+def has_varargs_and_kwargs(first, *args, second, **kwargs) -> Optional[str]:
+    pass
+
 
 spam = 'ham'
