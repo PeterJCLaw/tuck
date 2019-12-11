@@ -10,13 +10,6 @@ import asttokens
 
 INDENT_SIZE = 4
 
-WRAPPABLE_NODE_TYPES = (
-    ast.Dict,
-    ast.DictComp,
-    ast.List,
-    ast.ListComp,
-)
-
 
 @functools.total_ordering
 class Position:
@@ -125,23 +118,51 @@ class NodeFinder(ast.NodeVisitor):
         self.found = True
 
 
+WRAPPING_POSITION_FUNTIONS = []
+
+
+def node_wrapper(ast_type):
+    def wrapper(func):
+        WRAPPING_POSITION_FUNTIONS.append((ast_type, func))
+        return func
+    return wrapper
+
+
+@node_wrapper(ast.Dict)
+def wrap_dict(node: ast.Dict) -> List[Position]:
+    return [Position.from_node_start(x) for x in node.keys]
+
+
+@node_wrapper(ast.DictComp)
+def wrap_dict_comp(node: ast.DictComp) -> List[Position]:
+    return [
+        Position.from_node_start(node.key),
+    ] + [
+        Position.from_node_start(x) for x in node.generators
+    ]
+
+
+@node_wrapper(ast.List)
+def wrap_list(node: ast.List) -> List[Position]:
+    return [Position.from_node_start(x) for x in node.elts]
+
+
+@node_wrapper(ast.ListComp)
+def wrap_list_comp(node: ast.ListComp) -> List[Position]:
+    return [
+        Position.from_node_start(node.elt),
+    ] + [
+        Position.from_node_start(x) for x in node.generators
+    ]
+
+
+WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_POSITION_FUNTIONS)
+
+
 def get_wrapping_positions(node: ast.AST) -> List[Position]:
-    if isinstance(node, ast.Dict):
-        return [Position.from_node_start(x) for x in node.keys]
-    if isinstance(node, ast.DictComp):
-        return [
-            Position.from_node_start(node.key),
-        ] + [
-            Position.from_node_start(x) for x in node.generators
-        ]
-    if isinstance(node, ast.List):
-        return [Position.from_node_start(x) for x in node.elts]
-    if isinstance(node, ast.ListComp):
-        return [
-            Position.from_node_start(node.elt),
-        ] + [
-            Position.from_node_start(x) for x in node.generators
-        ]
+    for ast_type, func in WRAPPING_POSITION_FUNTIONS:
+        if isinstance(node, ast_type):
+            return func(node)
 
     if not isinstance(node, WRAPPABLE_NODE_TYPES):
         raise AssertionError("Unable to get wrapping positions for {}".format(node))
