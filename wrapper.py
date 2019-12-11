@@ -125,6 +125,30 @@ class NodeFinder(ast.NodeVisitor):
         self.found = True
 
 
+def get_wrapping_positions(node: ast.AST) -> List[Position]:
+    if isinstance(node, ast.Dict):
+        return [Position.from_node_start(x) for x in node.keys]
+    if isinstance(node, ast.DictComp):
+        return [
+            Position.from_node_start(node.key),
+        ] + [
+            Position.from_node_start(x) for x in node.generators
+        ]
+    if isinstance(node, ast.List):
+        return [Position.from_node_start(x) for x in node.elts]
+    if isinstance(node, ast.ListComp):
+        return [
+            Position.from_node_start(node.elt),
+        ] + [
+            Position.from_node_start(x) for x in node.generators
+        ]
+
+    if not isinstance(node, WRAPPABLE_NODE_TYPES):
+        raise AssertionError("Unable to get wrapping positions for {}".format(node))
+
+    raise AssertionError("Unsupported node type {}".format(node))
+
+
 def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Position, str]]:
     finder = NodeFinder(position)
     finder.visit(tree)
@@ -137,29 +161,6 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     #  - Insert a newline plus indent before each of the keys
     #  - Leave the values unchanged
     #  - Wrap the }
-
-    def get_wrapping_positions(node: ast.AST) -> List[Position]:
-        if isinstance(node, ast.Dict):
-            return [Position.from_node_start(x) for x in node.keys]
-        if isinstance(node, ast.DictComp):
-            return [
-                Position.from_node_start(node.key),
-            ] + [
-                Position.from_node_start(x) for x in node.generators
-            ]
-        if isinstance(node, ast.List):
-            return [Position.from_node_start(x) for x in node.elts]
-        if isinstance(node, ast.ListComp):
-            return [
-                Position.from_node_start(node.elt),
-            ] + [
-                Position.from_node_start(x) for x in node.generators
-            ]
-
-        if not isinstance(node, WRAPPABLE_NODE_TYPES):
-            raise AssertionError("Unable to get wrapping positions for {}".format(node))
-
-        raise AssertionError("Unsupported node type {}".format(node))
 
     current_indent = finder.get_indent_size()
     wrap = "\n" + " " * current_indent
