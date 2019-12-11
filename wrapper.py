@@ -152,7 +152,7 @@ def apply_insertions(content: str, insertions: List[Tuple[Position, str]]) -> st
         col = position.col - 1
 
         text = new_content[line]
-        new_content[line] = text[:col] + insertion + text[col:]
+        new_content[line] = text[:col].rstrip() + insertion + text[col:]
 
     return "".join(new_content)
 
