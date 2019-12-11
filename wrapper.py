@@ -117,8 +117,6 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
 
     node = finder.found_node
 
-    assert isinstance(node, ast.Dict), "Only supports dicts for now, not {}".format(node)
-
     # Note: insertions are actually applied in reverse, though we'll generate
     # them forwards:
     #  - Leave the { where it is
@@ -129,6 +127,14 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     def insertion_position(node: ast.AST) -> Position:
         return Position(node.lineno, node.col_offset + 1)
 
+    def get_elements(node: ast.AST) -> List[ast.AST]:
+        if isinstance(node, ast.Dict):
+            return node.keys
+        if isinstance(node, ast.List):
+            return node.elts
+
+        raise AssertionError("Only supports lists dicts for now, not {}".format(node))
+
     current_indent = finder.get_indent_size()
     wrap = "\n" + " " * current_indent
     wrap_indented = "\n" + " " * (current_indent + 4) # TODO: Make 4 variable
@@ -136,9 +142,9 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     insertions = []  # type: List[Tuple[Position, str]]
 
     last_line = node.lineno
-    for key_node in node.keys:
-        if key_node.lineno == last_line:
-            insertions.append((insertion_position(key_node), wrap_indented))
+    for child_node in get_elements(node):
+        if child_node.lineno == last_line:
+            insertions.append((insertion_position(child_node), wrap_indented))
 
     end_pos = Position.from_node_end(node)
 

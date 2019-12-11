@@ -154,6 +154,35 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_single_entry_list_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = ['abcd']
+            """,
+            """
+            foo = [
+                'abcd',
+            ]
+            """,
+        )
+
+    def test_multi_entry_list_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = ['abcd', 1234]
+            """,
+            """
+            foo = [
+                'abcd',
+                1234,
+            ]
+            """,
+        )
+
 
 if __name__ == '__main__':
     unittest.main(__name__)
