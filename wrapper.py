@@ -7,7 +7,7 @@ import argparse
 import functools
 from typing import List, Tuple, Iterable
 
-import asttokens
+from asttokens import ASTTokens
 
 INDENT_SIZE = 4
 
@@ -166,7 +166,7 @@ def append_wrap_end(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
 
 
 @node_wrapper(ast.Call)
-def wrap_call(node: ast.Call) -> WrappingSummary:
+def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
     summary = wrap_node_start_positions(node.args + node.keywords)
     append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
@@ -174,7 +174,7 @@ def wrap_call(node: ast.Call) -> WrappingSummary:
 
 
 @node_wrapper(ast.Dict)
-def wrap_dict(node: ast.Dict) -> WrappingSummary:
+def wrap_dict(asttokens: ASTTokens, node: ast.Dict) -> WrappingSummary:
     summary = wrap_node_start_positions(node.keys)
     append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
@@ -182,14 +182,14 @@ def wrap_dict(node: ast.Dict) -> WrappingSummary:
 
 
 @node_wrapper(ast.DictComp)
-def wrap_dict_comp(node: ast.DictComp) -> WrappingSummary:
+def wrap_dict_comp(asttokens: ASTTokens, node: ast.DictComp) -> WrappingSummary:
     summary = wrap_node_start_positions([node.key, *node.generators])
     append_wrap_end(summary, node)
     return summary
 
 
 @node_wrapper(ast.List)
-def wrap_list(node: ast.List) -> WrappingSummary:
+def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
     summary = wrap_node_start_positions(node.elts)
     append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
@@ -197,7 +197,7 @@ def wrap_list(node: ast.List) -> WrappingSummary:
 
 
 @node_wrapper(ast.ListComp)
-def wrap_list_comp(node: ast.ListComp) -> WrappingSummary:
+def wrap_list_comp(asttokens: ASTTokens, node: ast.ListComp) -> WrappingSummary:
     summary = wrap_node_start_positions([node.elt, *node.generators])
     append_wrap_end(summary, node)
     return summary
@@ -206,10 +206,10 @@ def wrap_list_comp(node: ast.ListComp) -> WrappingSummary:
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
 
 
-def get_wrapping_summary(node: ast.AST) -> WrappingSummary:
+def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary:
     for ast_type, func in WRAPPING_FUNTIONS:
         if isinstance(node, ast_type):
-            return func(node)
+            return func(asttokens, node)
 
     if not isinstance(node, WRAPPABLE_NODE_TYPES):
         raise AssertionError("Unable to get wrapping positions for {}".format(node))
@@ -217,9 +217,9 @@ def get_wrapping_summary(node: ast.AST) -> WrappingSummary:
     raise AssertionError("Unsupported node type {}".format(node))
 
 
-def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Position, str]]:
+def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Tuple[Position, str]]:
     finder = NodeFinder(position)
-    finder.visit(tree)
+    finder.visit(asttokens.tree)
 
     node = finder.found_node
 
@@ -238,7 +238,7 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
         MutationType.TRAILING_COMMA: ",",
     }
 
-    wrapping_summary = get_wrapping_summary(node)
+    wrapping_summary = get_wrapping_summary(asttokens, node)
 
     insertions = [
         (pos, mutations[mutation_type])
@@ -262,9 +262,9 @@ def apply_insertions(content: str, insertions: List[Tuple[Position, str]]) -> st
 
 
 def process(position: Position, content: str, filename: str) -> str:
-    tree = asttokens.ASTTokens(content, parse=True, filename=filename).tree
+    asttokens = ASTTokens(content, parse=True, filename=filename)
 
-    insertions = determine_insertions(tree, position)
+    insertions = determine_insertions(asttokens, position)
 
     new_content = apply_insertions(content, insertions)
 
