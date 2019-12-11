@@ -3,7 +3,6 @@
 import ast
 import difflib
 import argparse
-import tokenize
 import functools
 from typing import List, Tuple
 
@@ -110,18 +109,6 @@ class NodeFinder(ast.NodeVisitor):
                 self.node_stack.pop()
 
         self.found = True
-
-
-
-IGNORE_TOKEN_TYPES = set((
-    tokenize.COMMENT,
-    tokenize.ENCODING,
-    tokenize.ENDMARKER,
-    tokenize.INDENT,
-    tokenize.DEDENT,
-    tokenize.NEWLINE,
-    tokenize.NL,
-))
 
 
 def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Position, str]]:
