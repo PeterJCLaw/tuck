@@ -20,7 +20,9 @@ WRAPPABLE_NODE_TYPES = (
 class Position:
     @classmethod
     def from_node_start(cls, node: ast.AST) -> 'Position':
-        return cls(node.lineno, node.col_offset)
+        return cls(
+            *node.first_token.start,  # type: ignore # `first_token` is added by asttokens
+        )
 
     @classmethod
     def from_node_end(cls, node: ast.AST) -> 'Position':
