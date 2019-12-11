@@ -4,7 +4,7 @@ import ast
 import difflib
 import argparse
 import functools
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 
 import asttokens
 
@@ -128,32 +128,28 @@ def node_wrapper(ast_type):
     return wrapper
 
 
+def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
+    return [Position.from_node_start(x) for x in nodes]
+
+
 @node_wrapper(ast.Dict)
 def wrap_dict(node: ast.Dict) -> List[Position]:
-    return [Position.from_node_start(x) for x in node.keys]
+    return node_start_positions(node.keys)
 
 
 @node_wrapper(ast.DictComp)
 def wrap_dict_comp(node: ast.DictComp) -> List[Position]:
-    return [
-        Position.from_node_start(node.key),
-    ] + [
-        Position.from_node_start(x) for x in node.generators
-    ]
+    return node_start_positions([node.key, *node.generators])
 
 
 @node_wrapper(ast.List)
 def wrap_list(node: ast.List) -> List[Position]:
-    return [Position.from_node_start(x) for x in node.elts]
+    return node_start_positions(node.elts)
 
 
 @node_wrapper(ast.ListComp)
 def wrap_list_comp(node: ast.ListComp) -> List[Position]:
-    return [
-        Position.from_node_start(node.elt),
-    ] + [
-        Position.from_node_start(x) for x in node.generators
-    ]
+    return node_start_positions([node.elt, *node.generators])
 
 
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_POSITION_FUNTIONS)
