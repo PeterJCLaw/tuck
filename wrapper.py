@@ -12,6 +12,16 @@ import asttokens
 
 @functools.total_ordering
 class Position:
+    @classmethod
+    def from_node_start(cls, node: ast.AST) -> 'Position':
+        return cls(node.lineno, node.col_offset)
+
+    @classmethod
+    def from_node_end(cls, node: ast.AST) -> 'Position':
+        return cls(
+            *node.last_token.end,  # type: ignore # `last_token` is added by asttokens
+        )
+
     def __init__(self, line: int, col: int) -> None:
         self.line = line
         self.col = col
@@ -60,7 +70,8 @@ class NodeFinder(ast.NodeVisitor):
 
         # Ideally the first match on the given line
         found_node = self.found_node
-        for position, _ in self.found:
+        for _, node in self.found:
+            position = Position.from_node_start(node)
             if position.line == found_node.lineno:
                 return position.col
 
@@ -75,7 +86,7 @@ class NodeFinder(ast.NodeVisitor):
             super().generic_visit(node)
             return
 
-        position = Position(node.lineno, node.col_offset)
+        position = Position.from_node_start(node)
 
         if position < self.target_position:
             # we're on the path to finding the desired node
@@ -132,9 +143,7 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
         if key_node.lineno == last_line:
             insertions.append((insertion_position(key_node), wrap_indented))
 
-    end_pos = Position(
-        *node.last_token.end,  # type: ignore # `last_token` is added by asttokens
-    )
+    end_pos = Position.from_node_end(node)
 
     # TODO: conditional on whether it's already wrapped?
     insertions.append((end_pos, ','))
