@@ -4,11 +4,16 @@ import ast
 import difflib
 import argparse
 import functools
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, NamedTuple
 
 import asttokens
 
 INDENT_SIZE = 4
+
+WrappingSummary = NamedTuple('WrappingSummary', (
+    ('positions', 'List[Position]'),
+    ('add_trailing_comma', bool),
+))
 
 
 @functools.total_ordering
@@ -118,12 +123,12 @@ class NodeFinder(ast.NodeVisitor):
         self.found = True
 
 
-WRAPPING_POSITION_FUNTIONS = []
+WRAPPING_FUNTIONS = []
 
 
 def node_wrapper(ast_type):
     def wrapper(func):
-        WRAPPING_POSITION_FUNTIONS.append((ast_type, func))
+        WRAPPING_FUNTIONS.append((ast_type, func))
         return func
     return wrapper
 
@@ -133,35 +138,50 @@ def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
 
 
 @node_wrapper(ast.Call)
-def wrap_call(node: ast.Call) -> List[Position]:
-    return node_start_positions(node.args + node.keywords)
+def wrap_call(node: ast.Call) -> WrappingSummary:
+    return WrappingSummary(
+        node_start_positions(node.args + node.keywords),
+        add_trailing_comma=True,
+    )
 
 
 @node_wrapper(ast.Dict)
-def wrap_dict(node: ast.Dict) -> List[Position]:
-    return node_start_positions(node.keys)
+def wrap_dict(node: ast.Dict) -> WrappingSummary:
+    return WrappingSummary(
+        node_start_positions(node.keys),
+        add_trailing_comma=True,
+    )
 
 
 @node_wrapper(ast.DictComp)
-def wrap_dict_comp(node: ast.DictComp) -> List[Position]:
-    return node_start_positions([node.key, *node.generators])
+def wrap_dict_comp(node: ast.DictComp) -> WrappingSummary:
+    return WrappingSummary(
+        node_start_positions([node.key, *node.generators]),
+        add_trailing_comma=False,
+    )
 
 
 @node_wrapper(ast.List)
-def wrap_list(node: ast.List) -> List[Position]:
-    return node_start_positions(node.elts)
+def wrap_list(node: ast.List) -> WrappingSummary:
+    return WrappingSummary(
+        node_start_positions(node.elts),
+        add_trailing_comma=True,
+    )
 
 
 @node_wrapper(ast.ListComp)
-def wrap_list_comp(node: ast.ListComp) -> List[Position]:
-    return node_start_positions([node.elt, *node.generators])
+def wrap_list_comp(node: ast.ListComp) -> WrappingSummary:
+    return WrappingSummary(
+        node_start_positions([node.elt, *node.generators]),
+        add_trailing_comma=False,
+    )
 
 
-WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_POSITION_FUNTIONS)
+WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
 
 
-def get_wrapping_positions(node: ast.AST) -> List[Position]:
-    for ast_type, func in WRAPPING_POSITION_FUNTIONS:
+def get_wrapping_summary(node: ast.AST) -> WrappingSummary:
+    for ast_type, func in WRAPPING_FUNTIONS:
         if isinstance(node, ast_type):
             return func(node)
 
@@ -190,8 +210,10 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
 
     insertions = []  # type: List[Tuple[Position, str]]
 
+    wrapping_summary = get_wrapping_summary(node)
+
     last_line = node.lineno
-    for wrapping_position in get_wrapping_positions(node):
+    for wrapping_position in wrapping_summary.positions:
         if wrapping_position.line == last_line:
             insertion_position = Position(
                 wrapping_position.line,
@@ -202,7 +224,7 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     end_pos = Position.from_node_end(node)
 
     # TODO: conditional on whether it's already wrapped?
-    if isinstance(node, (ast.Call, ast.Dict, ast.List)):
+    if wrapping_summary.add_trailing_comma:
         insertions.append((end_pos, ','))
 
     insertions.append((end_pos, wrap))
