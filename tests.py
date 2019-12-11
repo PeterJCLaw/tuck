@@ -183,6 +183,37 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_dict_comprehension(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = {str(k): v for k, v in foo}
+            """,
+            """
+            foo = {
+                str(k): v
+                for k, v in foo
+            }
+            """,
+        )
+
+    def test_list_comprehension(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = [str(x) for x in range(42)]
+            """,
+            """
+            foo = [
+                str(x)
+                for x in range(42)
+            ]
+            """,
+        )
+
+
 
 if __name__ == '__main__':
     unittest.main(__name__)

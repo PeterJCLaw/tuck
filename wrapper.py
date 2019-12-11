@@ -12,7 +12,9 @@ INDENT_SIZE = 4
 
 WRAPPABLE_NODE_TYPES = (
     ast.Dict,
+    ast.DictComp,
     ast.List,
+    ast.ListComp,
 )
 
 
@@ -139,8 +141,20 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     def get_wrapping_positions(node: ast.AST) -> List[Position]:
         if isinstance(node, ast.Dict):
             return [Position.from_node_start(x) for x in node.keys]
+        if isinstance(node, ast.DictComp):
+            return [
+                Position.from_node_start(node.key),
+            ] + [
+                Position.from_node_start(x) for x in node.generators
+            ]
         if isinstance(node, ast.List):
             return [Position.from_node_start(x) for x in node.elts]
+        if isinstance(node, ast.ListComp):
+            return [
+                Position.from_node_start(node.elt),
+            ] + [
+                Position.from_node_start(x) for x in node.generators
+            ]
 
         if not isinstance(node, WRAPPABLE_NODE_TYPES):
             raise AssertionError("Unable to get wrapping positions for {}".format(node))
@@ -165,7 +179,9 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     end_pos = Position.from_node_end(node)
 
     # TODO: conditional on whether it's already wrapped?
-    insertions.append((end_pos, ','))
+    if isinstance(node, (ast.Dict, ast.List)):
+        insertions.append((end_pos, ','))
+
     insertions.append((end_pos, wrap))
 
     return insertions
