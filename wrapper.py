@@ -136,17 +136,14 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     #  - Leave the values unchanged
     #  - Wrap the }
 
-    def insertion_position(node: ast.AST) -> Position:
-        return Position(node.lineno, node.col_offset + 1)
-
-    def get_elements(node: ast.AST) -> List[ast.AST]:
+    def get_wrapping_positions(node: ast.AST) -> List[Position]:
         if isinstance(node, ast.Dict):
-            return node.keys
+            return [Position.from_node_start(x) for x in node.keys]
         if isinstance(node, ast.List):
-            return node.elts
+            return [Position.from_node_start(x) for x in node.elts]
 
         if not isinstance(node, WRAPPABLE_NODE_TYPES):
-            raise AssertionError("Unable to get elements for {}".format(node))
+            raise AssertionError("Unable to get wrapping positions for {}".format(node))
 
         raise AssertionError("Unsupported node type {}".format(node))
 
@@ -157,9 +154,13 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     insertions = []  # type: List[Tuple[Position, str]]
 
     last_line = node.lineno
-    for child_node in get_elements(node):
-        if child_node.lineno == last_line:
-            insertions.append((insertion_position(child_node), wrap_indented))
+    for wrapping_position in get_wrapping_positions(node):
+        if wrapping_position.line == last_line:
+            insertion_position = Position(
+                wrapping_position.line,
+                wrapping_position.col + 1,
+            )
+            insertions.append((insertion_position, wrap_indented))
 
     end_pos = Position.from_node_end(node)
 
