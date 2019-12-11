@@ -32,7 +32,7 @@ class Position:
     @classmethod
     def from_node_end(cls, node: ast.AST) -> 'Position':
         return cls(
-            *node.last_token.end,  # type: ignore # `last_token` is added by asttokens
+            *node.last_token.start,  # type: ignore # `last_token` is added by asttokens
         )
 
     def __init__(self, line: int, col: int) -> None:
@@ -144,7 +144,7 @@ def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
 
 def wrap_node_start_positions(nodes: Iterable[ast.AST]) -> WrappingSummary:
     return [
-        (Position(pos.line, pos.col + 1), MutationType.WRAP_INDENT)
+        (Position(pos.line, pos.col), MutationType.WRAP_INDENT)
         for pos in node_start_positions(nodes)
     ]
 
@@ -253,7 +253,7 @@ def apply_insertions(content: str, insertions: List[Tuple[Position, str]]) -> st
 
     for position, insertion in reversed(insertions):
         line = position.line - 1
-        col = position.col - 1
+        col = position.col
 
         text = new_content[line]
         new_content[line] = text[:col].rstrip() + insertion + text[col:]
