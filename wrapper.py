@@ -1,19 +1,24 @@
 #!/usr/bin/env python
 
 import ast
+import enum
 import difflib
 import argparse
 import functools
-from typing import List, Tuple, Iterable, NamedTuple
+from typing import List, Tuple, Iterable
 
 import asttokens
 
 INDENT_SIZE = 4
 
-WrappingSummary = NamedTuple('WrappingSummary', (
-    ('positions', 'List[Position]'),
-    ('add_trailing_comma', bool),
-))
+
+class MutationType(enum.Enum):
+    WRAP = 'wrap'
+    WRAP_INDENT = 'wrap_indent'
+    TRAILING_COMMA = 'trailing_comma'
+
+
+WrappingSummary = List[Tuple['Position', MutationType]]
 
 
 @functools.total_ordering
@@ -137,44 +142,65 @@ def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
     return [Position.from_node_start(x) for x in nodes]
 
 
+def wrap_node_start_positions(nodes: Iterable[ast.AST]) -> WrappingSummary:
+    return [
+        (Position(pos.line, pos.col + 1), MutationType.WRAP_INDENT)
+        for pos in node_start_positions(nodes)
+    ]
+
+
+def append_trailing_comma(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
+    summary.append((
+        Position.from_node_end(node),
+        MutationType.TRAILING_COMMA,
+    ))
+    return summary
+
+
+def append_wrap_end(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
+    summary.append((
+        Position.from_node_end(node),
+        MutationType.WRAP,
+    ))
+    return summary
+
+
 @node_wrapper(ast.Call)
 def wrap_call(node: ast.Call) -> WrappingSummary:
-    return WrappingSummary(
-        node_start_positions(node.args + node.keywords),
-        add_trailing_comma=True,
-    )
+    summary = wrap_node_start_positions(node.args + node.keywords)
+    append_trailing_comma(summary, node)
+    append_wrap_end(summary, node)
+    return summary
 
 
 @node_wrapper(ast.Dict)
 def wrap_dict(node: ast.Dict) -> WrappingSummary:
-    return WrappingSummary(
-        node_start_positions(node.keys),
-        add_trailing_comma=True,
-    )
+    summary = wrap_node_start_positions(node.keys)
+    append_trailing_comma(summary, node)
+    append_wrap_end(summary, node)
+    return summary
 
 
 @node_wrapper(ast.DictComp)
 def wrap_dict_comp(node: ast.DictComp) -> WrappingSummary:
-    return WrappingSummary(
-        node_start_positions([node.key, *node.generators]),
-        add_trailing_comma=False,
-    )
+    summary = wrap_node_start_positions([node.key, *node.generators])
+    append_wrap_end(summary, node)
+    return summary
 
 
 @node_wrapper(ast.List)
 def wrap_list(node: ast.List) -> WrappingSummary:
-    return WrappingSummary(
-        node_start_positions(node.elts),
-        add_trailing_comma=True,
-    )
+    summary = wrap_node_start_positions(node.elts)
+    append_trailing_comma(summary, node)
+    append_wrap_end(summary, node)
+    return summary
 
 
 @node_wrapper(ast.ListComp)
 def wrap_list_comp(node: ast.ListComp) -> WrappingSummary:
-    return WrappingSummary(
-        node_start_positions([node.elt, *node.generators]),
-        add_trailing_comma=False,
-    )
+    summary = wrap_node_start_positions([node.elt, *node.generators])
+    append_wrap_end(summary, node)
+    return summary
 
 
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
@@ -205,27 +231,19 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
     #  - Wrap the }
 
     current_indent = finder.get_indent_size()
-    wrap = "\n" + " " * current_indent
-    wrap_indented = "\n" + " " * (current_indent + INDENT_SIZE)
+
+    mutations = {
+        MutationType.WRAP: "\n" + " " * current_indent,
+        MutationType.WRAP_INDENT: "\n" + " " * (current_indent + INDENT_SIZE),
+        MutationType.TRAILING_COMMA: ",",
+    }
 
     insertions = []  # type: List[Tuple[Position, str]]
 
     wrapping_summary = get_wrapping_summary(node)
 
-    for wrapping_position in wrapping_summary.positions:
-        insertion_position = Position(
-            wrapping_position.line,
-            wrapping_position.col + 1,
-        )
-        insertions.append((insertion_position, wrap_indented))
-
-    end_pos = Position.from_node_end(node)
-
-    # TODO: conditional on whether it's already wrapped?
-    if wrapping_summary.add_trailing_comma:
-        insertions.append((end_pos, ','))
-
-    insertions.append((end_pos, wrap))
+    for wrapping_position, mutation_type in wrapping_summary:
+        insertions.append((wrapping_position, mutations[mutation_type]))
 
     return insertions
 
