@@ -8,6 +8,8 @@ from typing import List, Tuple
 
 import asttokens
 
+INDENT_SIZE = 4
+
 
 @functools.total_ordering
 class Position:
@@ -137,7 +139,7 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
 
     current_indent = finder.get_indent_size()
     wrap = "\n" + " " * current_indent
-    wrap_indented = "\n" + " " * (current_indent + 4) # TODO: Make 4 variable
+    wrap_indented = "\n" + " " * (current_indent + INDENT_SIZE)
 
     insertions = []  # type: List[Tuple[Position, str]]
 
