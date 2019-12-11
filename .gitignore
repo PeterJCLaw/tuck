@@ -1,0 +1,14 @@
+*~
+*#
+*.pyc
+__pycache__/
+.DS_Store
+.coverage
+.idea
+/.mypy_cache
+.coverage_report/
+
+/.vscode
+
+*.sublime-*
+.cache/
