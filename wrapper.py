@@ -10,6 +10,11 @@ import asttokens
 
 INDENT_SIZE = 4
 
+WRAPPABLE_NODE_TYPES = (
+    ast.Dict,
+    ast.List,
+)
+
 
 @functools.total_ordering
 class Position:
@@ -62,7 +67,18 @@ class NodeFinder(ast.NodeVisitor):
         if not self.found:
             raise ValueError("No node found!")
 
-        return self.node_stack[-1]
+        try:
+            return next(
+                node
+                for node in reversed(self.node_stack)
+                if isinstance(node, WRAPPABLE_NODE_TYPES)
+            )
+        except StopIteration:
+            raise ValueError(
+                "No supported nodes found (stack: {})".format(
+                    " > ".join(type(x).__name__ for x in self.node_stack),
+                ),
+            ) from None
 
     def get_indent_size(self) -> int:
         if not self.found:
@@ -102,14 +118,6 @@ class NodeFinder(ast.NodeVisitor):
 
         super().generic_visit(node)
 
-        if not self.found:
-            has_children = bool(tuple(ast.iter_child_nodes(node)))
-            if not has_children:
-                # we're the bottom node which contains the target position and
-                # we have no children. We are therefore a leaf and should be
-                # discarded.
-                self.node_stack.pop()
-
         self.found = True
 
 
@@ -135,7 +143,10 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
         if isinstance(node, ast.List):
             return node.elts
 
-        raise AssertionError("Only supports lists dicts for now, not {}".format(node))
+        if not isinstance(node, WRAPPABLE_NODE_TYPES):
+            raise AssertionError("Unable to get elements for {}".format(node))
+
+        raise AssertionError("Unsupported node type {}".format(node))
 
     current_indent = finder.get_indent_size()
     wrap = "\n" + " " * current_indent
