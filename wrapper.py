@@ -212,14 +212,12 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
 
     wrapping_summary = get_wrapping_summary(node)
 
-    last_line = node.lineno
     for wrapping_position in wrapping_summary.positions:
-        if wrapping_position.line == last_line:
-            insertion_position = Position(
-                wrapping_position.line,
-                wrapping_position.col + 1,
-            )
-            insertions.append((insertion_position, wrap_indented))
+        insertion_position = Position(
+            wrapping_position.line,
+            wrapping_position.col + 1,
+        )
+        insertions.append((insertion_position, wrap_indented))
 
     end_pos = Position.from_node_end(node)
 
