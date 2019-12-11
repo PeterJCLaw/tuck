@@ -238,12 +238,12 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
         MutationType.TRAILING_COMMA: ",",
     }
 
-    insertions = []  # type: List[Tuple[Position, str]]
-
     wrapping_summary = get_wrapping_summary(node)
 
-    for wrapping_position, mutation_type in wrapping_summary:
-        insertions.append((wrapping_position, mutations[mutation_type]))
+    insertions = [
+        (pos, mutations[mutation_type])
+        for pos, mutation_type in wrapping_summary
+    ]
 
     return insertions
 
