@@ -120,7 +120,7 @@ def determine_insertions(tree: ast.AST, position: Position) -> List[Tuple[Positi
 
     node = finder.found_node
 
-    assert isinstance(node, ast.Dict), "Only supports dicts for now"
+    assert isinstance(node, ast.Dict), "Only supports dicts for now, not {}".format(node)
 
     # Note: insertions are actually applied in reverse, though we'll generate
     # them forwards:
