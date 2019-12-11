@@ -69,7 +69,6 @@ class NodeFinder(ast.NodeVisitor):
 
     def generic_visit(self, node):
         if self.found is not None:
-            # self.next = node
             return
 
         if not hasattr(node, 'lineno'):
