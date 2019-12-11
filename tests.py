@@ -30,6 +30,52 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_indented_single_key_dict_literal(self) -> None:
+        self.assertTransform(
+            2,
+            12,
+            """
+            if True:
+                foo = {'abcd': 1234}
+            """,
+            """
+            if True:
+                foo = {
+                    'abcd': 1234,
+                }
+            """,
+        )
+
+    def test_multi_key_dict_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = {'key': 1234, 'other': 5678}
+            """,
+            """
+            foo = {
+                'key': 1234,
+                'other': 5678,
+            }
+            """,
+        )
+
+    def test_nested_dict(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = {'key': 1234, 'other': {'bar': 5678}}
+            """,
+            """
+            foo = {
+                'key': 1234,
+                'other': {'bar': 5678},
+            }
+            """,
+        )
+
 
 if __name__ == '__main__':
     unittest.main(__name__)
