@@ -336,7 +336,7 @@ def parse_args():
         type=parse_position,
         help=(
             "The position within the file to wrap at. "
-            "Express in LINE:COL format, with 1-based line numbers.",
+            "Express in LINE:COL format, with 1-based line numbers."
         ),
     )
     parser.add_argument('--mode', choices=('wrap', 'unwrap'), default='wrap')
