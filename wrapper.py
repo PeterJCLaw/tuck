@@ -19,6 +19,7 @@ class MutationType(enum.Enum):
 
 
 WrappingSummary = List[Tuple['Position', MutationType]]
+Insertion = Tuple['Position', str]
 
 
 @functools.total_ordering
@@ -262,7 +263,7 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
     raise AssertionError("Unsupported node type {}".format(node))
 
 
-def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Tuple[Position, str]]:
+def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position)
     finder.visit(asttokens.tree)
 
@@ -293,7 +294,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Tuple
     return insertions
 
 
-def apply_insertions(content: str, insertions: List[Tuple[Position, str]]) -> str:
+def apply_insertions(content: str, insertions: List[Insertion]) -> str:
     new_content = content.splitlines(keepends=True)
 
     for position, insertion in reversed(insertions):
