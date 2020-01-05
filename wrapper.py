@@ -2,10 +2,11 @@
 
 import ast
 import enum
+import json
 import difflib
 import argparse
 import functools
-from typing import List, Tuple, Iterable
+from typing import Dict, List, Tuple, Union, Iterable
 
 from asttokens import ASTTokens
 
@@ -20,6 +21,9 @@ class MutationType(enum.Enum):
 
 WrappingSummary = List[Tuple['Position', MutationType]]
 Insertion = Tuple['Position', str]
+
+LSP_Range = Dict[str, Dict[str, int]]
+LSP_TextEdit = Dict[str, Union[str, LSP_Range]]
 
 
 @functools.total_ordering
@@ -307,14 +311,35 @@ def apply_insertions(content: str, insertions: List[Insertion]) -> str:
     return "".join(new_content)
 
 
-def process(position: Position, content: str, filename: str) -> str:
+
+def process(position: Position, content: str, filename: str) -> Tuple[str, List[Insertion]]:
     asttokens = ASTTokens(content, parse=True, filename=filename)
 
     insertions = determine_insertions(asttokens, position)
 
     new_content = apply_insertions(content, insertions)
 
-    return new_content
+    return new_content, insertions
+
+
+def insertion_as_lsp_data(position: Position, new_text: str) -> LSP_TextEdit:
+    """
+    Convert an expanded `Insertion` to a Language Server Protocol compatible
+    dictionaries for display as JSON.
+
+    Note: in LSP line numbers are zero-based, while our `Position`s are
+    one-based.
+    """
+    pos = {'line': position.line - 1, 'character': position.col}
+    return {
+        'range': {'start': pos, 'end': pos},
+        'newText': new_text,
+    }
+
+
+def print_edits(insertions: List[Insertion]) -> None:
+    data = [insertion_as_lsp_data(*x) for x in insertions]
+    print(json.dumps(data))
 
 
 def parse_position(position: str) -> Position:
@@ -341,10 +366,19 @@ def parse_args():
         ),
     )
     parser.add_argument('--mode', choices=('wrap', 'unwrap'), default='wrap')
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         '--diff',
         action='store_true',
         help="Print the changes as a unified diff rather than printing the new content.",
+    )
+    group.add_argument(
+        '--edits',
+        action='store_true',
+        help=(
+            "Print the changes as language-server-protocol compatible edits, "
+            "rather than printing the new content."
+        ),
     )
     return parser.parse_args()
 
@@ -352,7 +386,7 @@ def parse_args():
 def main(args: argparse.Namespace) -> None:
     content = args.file.read()
 
-    new_content = process(args.position, content, args.file.name)
+    new_content, insertions = process(args.position, content, args.file.name)
 
     if args.diff:
         print("".join(difflib.unified_diff(
@@ -361,6 +395,8 @@ def main(args: argparse.Namespace) -> None:
             'original',
             'formatted',
         )))
+    elif args.edits:
+        print_edits(insertions)
     else:
         print(new_content)
 

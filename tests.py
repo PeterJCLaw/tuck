@@ -12,7 +12,7 @@ class TestWrapper(unittest.TestCase):
         content = textwrap.dedent(content[1:])
         expected_output = textwrap.dedent(expected_output[1:])
 
-        new_content = wrapper.process(wrapper.Position(line, col), content, 'demo.py')
+        new_content, _ = wrapper.process(wrapper.Position(line, col), content, 'demo.py')
 
         self.assertEqual(expected_output, new_content, "Bad transformation")
 
