@@ -322,11 +322,29 @@ def parse_position(position: str) -> Position:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=argparse.FileType(mode='r'))
-    parser.add_argument('--position', required=True, type=parse_position)
+    parser = argparse.ArgumentParser(
+        description="Wrap the python statement at a given position within a text document.",
+    )
+    parser.add_argument(
+        'file',
+        type=argparse.FileType(mode='r'),
+        help="The file to read from. Use '-' to read from STDIN."
+    )
+    parser.add_argument(
+        '--position',
+        required=True,
+        type=parse_position,
+        help=(
+            "The position within the file to wrap at. "
+            "Express in LINE:COL format, with 1-based line numbers.",
+        ),
+    )
     parser.add_argument('--mode', choices=('wrap', 'unwrap'), default='wrap')
-    parser.add_argument('--diff', action='store_true')
+    parser.add_argument(
+        '--diff',
+        action='store_true',
+        help="Print the changes as a unified diff rather than printing the new content.",
+    )
     return parser.parse_args()
 
 
