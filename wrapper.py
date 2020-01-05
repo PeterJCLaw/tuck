@@ -23,6 +23,12 @@ WrappingSummary = List[Tuple['Position', MutationType]]
 
 @functools.total_ordering
 class Position:
+    """
+    A position within a document, compatible with Python AST positions.
+
+    Line numbers are one-based, columns are zero-based.
+    """
+
     @classmethod
     def from_node_start(cls, node: ast.AST) -> 'Position':
         return cls(
