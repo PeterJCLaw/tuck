@@ -178,7 +178,18 @@ def append_wrap_end(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
 
 @node_wrapper(ast.Call)
 def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
-    summary = wrap_node_start_positions(node.args + node.keywords)
+    named_args = node.keywords
+    kwargs = None
+    if named_args and named_args[-1].arg is None:
+        named_args = node.keywords[:-1]
+        kwargs = node.keywords[-1]
+
+    summary = wrap_node_start_positions(node.args + named_args)
+
+    if kwargs is not None:
+        kwargs_stars = asttokens.prev_token(kwargs.first_token)
+        summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
+
     append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
     return summary

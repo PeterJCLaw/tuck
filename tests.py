@@ -229,6 +229,23 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_function_call_args_kwargs(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo('abcd', *args, foo=42, **kwargs)
+            """,
+            """
+            foo(
+                'abcd',
+                *args,
+                foo=42,
+                **kwargs,
+            )
+            """,
+        )
+
     def test_function_definition(self) -> None:
         self.assertTransform(
             1,
