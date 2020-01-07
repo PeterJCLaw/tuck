@@ -301,6 +301,25 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_function_definition_spacey_args_kwargs(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(first, * args, second, ** kwargs) -> Optional[str]:
+                pass
+            """,
+            """
+            def foo(
+                first,
+                * args,
+                second,
+                ** kwargs
+            ) -> Optional[str]:
+                pass
+            """,
+        )
+
 
 if __name__ == '__main__':
     unittest.main(__name__)

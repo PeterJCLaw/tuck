@@ -216,8 +216,8 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
 
     if node.args.vararg:
         # Account for the * before the name
-        pos = Position.from_node_start(node.args.vararg)
-        positions.append(Position(pos.line, pos.col - 1))
+        args_star = asttokens.prev_token(node.args.vararg.first_token)
+        positions.append(Position(*args_star.start))
 
     if node.args.kwonlyargs:
         # Account for the unnamed *
@@ -230,8 +230,8 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
 
     if node.args.kwarg:
         # Account for the ** before the name
-        pos = Position.from_node_start(node.args.kwarg)
-        positions.append(Position(pos.line, pos.col - 2))
+        kwargs_stars = asttokens.prev_token(node.args.kwarg.first_token)
+        positions.append(Position(*kwargs_stars.start))
 
     summary = [
         (Position(pos.line, pos.col), MutationType.WRAP_INDENT)
