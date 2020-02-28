@@ -3,6 +3,7 @@
 import ast
 import enum
 import json
+import token
 import difflib
 import argparse
 import functools
@@ -98,20 +99,6 @@ class NodeFinder(ast.NodeVisitor):
                     " > ".join(type(x).__name__ for x in self.node_stack),
                 ),
             ) from None
-
-    def get_indent_size(self) -> int:
-        if not self.found:
-            raise ValueError("No node found!")
-
-        # Ideally the first match on the given line
-        found_node = self.found_node
-        for node in self.node_stack:
-            position = Position.from_node_start(node)
-            if position.line == found_node.lineno:
-                return position.col
-
-        # Fall back to the most recent column
-        return self.node_stack[-1].col_offset
 
     def generic_visit(self, node: ast.AST) -> None:
         if self.found:
@@ -324,6 +311,18 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
     raise AssertionError("Unsupported node type {}".format(node))
 
 
+def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
+    first_token = node.first_token  # type: ignore
+    lineno = first_token.start[0]
+
+    next_tok = tok = first_token
+    while lineno == tok.start[0] and tok.type != token.INDENT:
+        next_tok = tok
+        tok = asttokens.prev_token(tok)
+
+    return next_tok.start[1]  # type: ignore
+
+
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position)
     finder.visit(asttokens.tree)
@@ -337,7 +336,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
     #  - Leave the values unchanged
     #  - Wrap the }
 
-    current_indent = finder.get_indent_size()
+    current_indent = get_current_indent(asttokens, node)
 
     mutations = {
         MutationType.WRAP: "\n" + " " * current_indent,

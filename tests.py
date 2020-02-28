@@ -464,6 +464,48 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_double_nested_function_call_outer_already_partially_wrapped(self) -> None:
+        self.assertTransform(
+            2,
+            30,
+            """
+            foo(
+                bar=quox(spam=ham('abcd', 'efgh')),
+            )
+            """,
+            """
+            foo(
+                bar=quox(spam=ham(
+                    'abcd',
+                    'efgh',
+                )),
+            )
+            """,
+        )
+
+    def test_double_nested_function_call_outer_already_fully_wrapped(self) -> None:
+        self.assertTransform(
+            3,
+            20,
+            """
+            foo(
+                bar=quox(
+                    spam=ham('abcd', 'efgh'),
+                ),
+            )
+            """,
+            """
+            foo(
+                bar=quox(
+                    spam=ham(
+                        'abcd',
+                        'efgh',
+                    ),
+                ),
+            )
+            """,
+        )
+
     def test_nested_function_call_with_preceding_arg(self) -> None:
         self.assertTransform(
             1,
