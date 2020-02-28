@@ -246,6 +246,66 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_function_with_nested_call(self) -> None:
+        self.assertTransform(
+            1,
+            6,
+            """
+            foo(bar=quox('abcd', foo=42), spam='ham')
+            """,
+            """
+            foo(
+                bar=quox('abcd', foo=42),
+                spam='ham',
+            )
+            """,
+        )
+
+    def test_nested_function_call(self) -> None:
+        self.assertTransform(
+            1,
+            20,
+            """
+            foo(bar=quox('abcd', foo=42))
+            """,
+            """
+            foo(bar=quox(
+                'abcd',
+                foo=42,
+            ))
+            """,
+        )
+
+    def test_double_nested_function_call(self) -> None:
+        self.assertTransform(
+            1,
+            30,
+            """
+            foo(bar=quox(spam=ham('abcd', 'efgh')))
+            """,
+            """
+            foo(bar=quox(spam=ham(
+                'abcd',
+                'efgh',
+            )))
+            """,
+        )
+
+    def test_nested_function_call_with_preceding_arg(self) -> None:
+        self.assertTransform(
+            1,
+            30,
+            """
+            foo(spam='ham', bar=quox('abcd', foo=42))
+            """,
+            """
+            foo(spam='ham', bar=quox(
+                'abcd',
+                foo=42,
+            ))
+            """,
+        )
+
     def test_function_definition(self) -> None:
         self.assertTransform(
             1,
