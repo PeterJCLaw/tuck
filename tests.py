@@ -386,6 +386,27 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_nested_wrapped_entity_in_unwrapped_entity(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = {'a': [
+                1,
+                2,
+            ], 'b': [42]}
+            """,
+            """
+            foo = {
+                'a': [
+                    1,
+                    2,
+                ],
+                'b': [42],
+            }
+            """,
+        )
+
     def test_function_call(self) -> None:
         self.assertTransform(
             1,
@@ -446,6 +467,26 @@ class TestWrapper(unittest.TestCase):
                 'abcd',
                 foo=42,
             ))
+            """,
+        )
+
+    def test_nested_function_call_already_partially_wrapped(self) -> None:
+        self.assertTransform(
+            4,
+            1,
+            """
+            foo("abcd {} {}".format(
+                'efgh',
+                'ijkl',
+            ))
+            """,
+            """
+            foo(
+                "abcd {} {}".format(
+                    'efgh',
+                    'ijkl',
+                ),
+            )
             """,
         )
 

@@ -323,6 +323,26 @@ def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
     return next_tok.start[1]  # type: ignore
 
 
+def indent_interim_lines(insertions: List[Insertion], current_indent: int) -> None:
+    first_line = insertions[0][0].line
+    last_line = insertions[-1][0].line
+
+    if first_line == last_line:
+        # Everything was on one line to start with, nothing for us to do.
+        return
+
+    # Add indentations for things which were already wrapped somewhat. We don't
+    # want to touch the first line (since that's the line we're splitting up),
+    # but we do want to indent anything which was already on the last line we're
+    # touching.
+    for line in range(first_line + 1, last_line + 1):
+        insertions.append(
+            (Position(line, 0), " " * (current_indent + INDENT_SIZE)),
+        )
+
+    insertions.sort(key=lambda x: x[0])
+
+
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position)
     finder.visit(asttokens.tree)
@@ -346,6 +366,8 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
         (pos, mutations[mutation_type])
         for pos, mutation_type in wrapping_summary
     ]
+
+    indent_interim_lines(insertions, current_indent)
 
     return insertions
 
