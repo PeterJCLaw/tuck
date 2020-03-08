@@ -270,6 +270,15 @@ def wrap_list_comp(asttokens: ASTTokens, node: ast.ListComp) -> WrappingSummary:
     return summary
 
 
+@node_wrapper(ast.Tuple)
+def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
+    summary = wrap_node_start_positions(node.elts)
+    if len(node.elts) > 1:
+        append_trailing_comma(summary, node)
+    append_wrap_end(summary, node)
+    return summary
+
+
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
 
 

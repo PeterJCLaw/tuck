@@ -183,6 +183,35 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_single_entry_tuple_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = ('abcd',)
+            """,
+            """
+            foo = (
+                'abcd',
+            )
+            """,
+        )
+
+    def test_multi_entry_tuple_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = ('abcd', 1234)
+            """,
+            """
+            foo = (
+                'abcd',
+                1234,
+            )
+            """,
+        )
+
     def test_dict_comprehension(self) -> None:
         self.assertTransform(
             1,
