@@ -190,7 +190,7 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
         named_args = node.keywords[:-1]
         kwargs = node.keywords[-1]
 
-    summary = wrap_node_start_positions(node.args + named_args)
+    summary = wrap_node_start_positions([*node.args, *named_args])
 
     if kwargs is not None:
         kwargs_stars = asttokens.prev_token(kwargs.first_token)
