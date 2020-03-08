@@ -330,11 +330,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
     node = finder.found_node
 
     # Note: insertions are actually applied in reverse, though we'll generate
-    # them forwards:
-    #  - Leave the { where it is
-    #  - Insert a newline plus indent before each of the keys
-    #  - Leave the values unchanged
-    #  - Wrap the }
+    # them forwards.
 
     current_indent = get_current_indent(asttokens, node)
 
