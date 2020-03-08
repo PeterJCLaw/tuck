@@ -6,10 +6,11 @@ import json
 import difflib
 import argparse
 import functools
-from typing import Dict, List, Tuple, Union, Iterable
+from typing import Dict, List, Type, Tuple, Union, TypeVar, Callable, Iterable
 
-from asttokens import ASTTokens
+from asttokens import ASTTokens  # type: ignore
 
+TAst = TypeVar('TAst', bound=ast.AST)
 INDENT_SIZE = 4
 
 
@@ -112,7 +113,7 @@ class NodeFinder(ast.NodeVisitor):
         # Fall back to the most recent column
         return self.node_stack[-1].col_offset
 
-    def generic_visit(self, node):
+    def generic_visit(self, node: ast.AST) -> None:
         if self.found:
             return
 
@@ -142,8 +143,13 @@ class NodeFinder(ast.NodeVisitor):
 WRAPPING_FUNTIONS = []
 
 
-def node_wrapper(ast_type):
-    def wrapper(func):
+def node_wrapper(ast_type: Type[TAst]) -> Callable[
+    [Callable[[ASTTokens, TAst], WrappingSummary]],
+    Callable[[ASTTokens, TAst], WrappingSummary],
+]:
+    def wrapper(
+        func: Callable[[ASTTokens, TAst], WrappingSummary],
+    ) -> Callable[[ASTTokens, TAst], WrappingSummary]:
         WRAPPING_FUNTIONS.append((ast_type, func))
         return func
     return wrapper
@@ -357,7 +363,7 @@ def parse_position(position: str) -> Position:
     return Position(line, col)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Wrap the python statement at a given position within a text document.",
     )
