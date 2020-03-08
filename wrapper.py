@@ -322,7 +322,6 @@ def apply_insertions(content: str, insertions: List[Insertion]) -> str:
     return "".join(new_content)
 
 
-
 def process(position: Position, content: str, filename: str) -> Tuple[str, List[Insertion]]:
     asttokens = ASTTokens(content, parse=True, filename=filename)
 
