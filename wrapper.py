@@ -255,6 +255,20 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
     return summary
 
 
+@node_wrapper(ast.GeneratorExp)
+def wrap_generator_exp(asttokens: ASTTokens, node: ast.GeneratorExp) -> WrappingSummary:
+    summary = wrap_node_start_positions([node.elt, *node.generators])
+
+    next_token = asttokens.next_token(node.last_token)
+    if next_token.string == ')':
+        summary.append((
+            Position(*next_token.start),
+            MutationType.WRAP,
+        ))
+
+    return summary
+
+
 @node_wrapper(ast.List)
 def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
     summary = wrap_node_start_positions(node.elts)

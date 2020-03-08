@@ -242,6 +242,51 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_generator_expression(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = (str(x) for x in range(42))
+            """,
+            """
+            foo = (
+                str(x)
+                for x in range(42)
+            )
+            """,
+        )
+
+    def test_generator_expression_as_only_argument(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo(str(x) for x in range(42))
+            """,
+            """
+            foo(
+                str(x)
+                for x in range(42)
+            )
+            """,
+        )
+
+    def test_generator_expression_as_argument(self) -> None:
+        self.assertTransform(
+            1,
+            20,
+            """
+            foo('abc', (str(x) for x in range(42)), 'def')
+            """,
+            """
+            foo('abc', (
+                str(x)
+                for x in range(42)
+            ), 'def')
+            """,
+        )
+
     def test_function_call(self) -> None:
         self.assertTransform(
             1,

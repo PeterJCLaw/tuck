@@ -35,3 +35,6 @@ def has_varargs_and_kwargs(first, *args, second, **kwargs) -> Optional[str]:
 
 
 spam = 'ham'
+
+
+generator = (x for x in 'lskdjf')
