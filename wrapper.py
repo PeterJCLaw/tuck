@@ -148,7 +148,7 @@ def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
 
 def wrap_node_start_positions(nodes: Iterable[ast.AST]) -> WrappingSummary:
     return [
-        (Position(pos.line, pos.col), MutationType.WRAP_INDENT)
+        (pos, MutationType.WRAP_INDENT)
         for pos in node_start_positions(nodes)
     ]
 
