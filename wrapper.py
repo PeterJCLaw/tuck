@@ -166,6 +166,23 @@ def wrap_node_start_positions(nodes: Iterable[ast.AST]) -> WrappingSummary:
     ]
 
 
+def wrap_generator_body(
+    asttokens: ASTTokens,
+    elt: ast.expr,
+    generators: List[ast.comprehension],
+) -> WrappingSummary:
+    start_positions = [Position.from_node_start(elt)]
+
+    for generator in generators:
+        start_positions.append(Position.from_node_start(generator))
+        for compare in generator.ifs:
+            if_token = asttokens.prev_token(compare.first_token)
+            assert if_token.string == 'if'
+            start_positions.append(Position(*if_token.start))
+
+    return [(x, MutationType.WRAP_INDENT) for x in start_positions]
+
+
 def append_trailing_comma(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
     summary.append((
         Position.from_node_end(node),
@@ -211,7 +228,7 @@ def wrap_dict(asttokens: ASTTokens, node: ast.Dict) -> WrappingSummary:
 
 @node_wrapper(ast.DictComp)
 def wrap_dict_comp(asttokens: ASTTokens, node: ast.DictComp) -> WrappingSummary:
-    summary = wrap_node_start_positions([node.key, *node.generators])
+    summary = wrap_generator_body(asttokens, node.key, node.generators)
     append_wrap_end(summary, node)
     return summary
 
@@ -257,7 +274,7 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
 
 @node_wrapper(ast.GeneratorExp)
 def wrap_generator_exp(asttokens: ASTTokens, node: ast.GeneratorExp) -> WrappingSummary:
-    summary = wrap_node_start_positions([node.elt, *node.generators])
+    summary = wrap_generator_body(asttokens, node.elt, node.generators)
 
     next_token = asttokens.next_token(node.last_token)
     if next_token.string == ')':
@@ -279,7 +296,7 @@ def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
 
 @node_wrapper(ast.ListComp)
 def wrap_list_comp(asttokens: ASTTokens, node: ast.ListComp) -> WrappingSummary:
-    summary = wrap_node_start_positions([node.elt, *node.generators])
+    summary = wrap_generator_body(asttokens, node.elt, node.generators)
     append_wrap_end(summary, node)
     return summary
 

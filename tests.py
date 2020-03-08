@@ -227,6 +227,39 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_dict_comprehension_with_conditional(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = {str(x): x for x in range(42) if x % 3 == 0}
+            """,
+            """
+            foo = {
+                str(x): x
+                for x in range(42)
+                if x % 3 == 0
+            }
+            """,
+        )
+
+    def test_dict_comprehension_with_conditional_and_inner_loop(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = {int(a): a for x in range(42) if x % 3 == 0 for a in str(x)}
+            """,
+            """
+            foo = {
+                int(a): a
+                for x in range(42)
+                if x % 3 == 0
+                for a in str(x)
+            }
+            """,
+        )
+
     def test_list_comprehension(self) -> None:
         self.assertTransform(
             1,
@@ -238,6 +271,39 @@ class TestWrapper(unittest.TestCase):
             foo = [
                 str(x)
                 for x in range(42)
+            ]
+            """,
+        )
+
+    def test_list_comprehension_with_conditional(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = [str(x) for x in range(42) if x % 3 == 0]
+            """,
+            """
+            foo = [
+                str(x)
+                for x in range(42)
+                if x % 3 == 0
+            ]
+            """,
+        )
+
+    def test_list_comprehension_with_conditional_and_inner_loop(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = [a for x in range(42) if x % 3 == 0 for a in str(x)]
+            """,
+            """
+            foo = [
+                a
+                for x in range(42)
+                if x % 3 == 0
+                for a in str(x)
             ]
             """,
         )
@@ -284,6 +350,39 @@ class TestWrapper(unittest.TestCase):
                 str(x)
                 for x in range(42)
             ), 'def')
+            """,
+        )
+
+    def test_generator_expression_with_conditonal(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = (x for x in range(42) if x % 3 == 0)
+            """,
+            """
+            foo = (
+                x
+                for x in range(42)
+                if x % 3 == 0
+            )
+            """,
+        )
+
+    def test_generator_expression_with_conditonal_and_inner_loop(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = (a for x in range(42) if x % 3 == 0 for a in str(x))
+            """,
+            """
+            foo = (
+                a
+                for x in range(42)
+                if x % 3 == 0
+                for a in str(x)
+            )
             """,
         )
 
