@@ -8,6 +8,10 @@ __pycache__/
 /.mypy_cache
 .coverage_report/
 
+/build
+/dist
+*.egg-info
+
 /.vscode
 
 *.sublime-*
