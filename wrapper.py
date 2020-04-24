@@ -32,6 +32,10 @@ LSP_Range = Dict[str, Dict[str, int]]
 LSP_TextEdit = Dict[str, Union[str, LSP_Range]]
 
 
+class EditsOverlapError(Exception):
+    pass
+
+
 @functools.total_ordering
 class Position:
     """
@@ -427,6 +431,20 @@ def coalesce(summary: WrappingSummary) -> Iterable[Tuple[Position, List[Mutation
         yield pos, [x for _, x in grouped]
 
 
+def all_are_disjoint(grouped: Iterable[List[Position]]) -> bool:
+    ranges = sorted(
+        (min(positions), max(positions))
+        for positions in grouped
+        if positions
+    )
+
+    for (_, lower_end), (upper_start, _) in zip(ranges, ranges[1:]):
+        if upper_start < lower_end:
+            return False
+
+    return True
+
+
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position)
     finder.visit(asttokens.tree)
@@ -459,6 +477,20 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
     return insertions
 
 
+def merge_insertions(grouped_insertions: Iterable[List[Insertion]]) -> List[Insertion]:
+    flat_insertions = []
+    positions = []  # type: List[List[Position]]
+
+    for insertions in grouped_insertions:
+        flat_insertions.extend(insertions)
+        positions.append([x for x, _ in insertions])
+
+    if not all_are_disjoint(positions):
+        raise EditsOverlapError()
+
+    return flat_insertions
+
+
 def apply_insertions(content: str, insertions: List[Insertion]) -> str:
     new_content = content.splitlines(keepends=True)
 
@@ -472,10 +504,17 @@ def apply_insertions(content: str, insertions: List[Insertion]) -> str:
     return "".join(new_content)
 
 
-def process(position: Position, content: str, filename: str) -> Tuple[str, List[Insertion]]:
+def process(
+    positions: List[Position],
+    content: str,
+    filename: str,
+) -> Tuple[str, List[Insertion]]:
     asttokens = ASTTokens(content, parse=True, filename=filename)
 
-    insertions = determine_insertions(asttokens, position)
+    insertions = merge_insertions(
+        determine_insertions(asttokens, position)
+        for position in positions
+    )
 
     new_content = apply_insertions(content, insertions)
 
@@ -517,12 +556,15 @@ def parse_args() -> argparse.Namespace:
         help="The file to read from. Use '-' to read from STDIN."
     )
     parser.add_argument(
-        '--position',
+        '--positions',
         required=True,
+        nargs='+',
         type=parse_position,
         help=(
-            "The position within the file to wrap at. "
-            "Express in LINE:COL format, with 1-based line numbers."
+            "The positions within the file to wrap at. "
+            "Express in LINE:COL format, with 1-based line numbers. "
+            "When multiple locations are specified, they must appear within "
+            "distinct statements. It is an error if the edits overlap."
         ),
     )
     parser.add_argument('--mode', choices=('wrap', 'unwrap'), default='wrap')
@@ -546,7 +588,7 @@ def parse_args() -> argparse.Namespace:
 def main(args: argparse.Namespace) -> None:
     content = args.file.read()
 
-    new_content, insertions = process(args.position, content, args.file.name)
+    new_content, insertions = process(args.positions, content, args.file.name)
 
     if args.diff:
         print("".join(difflib.unified_diff(

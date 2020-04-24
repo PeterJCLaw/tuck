@@ -2,20 +2,39 @@
 
 import textwrap
 import unittest
+from typing import List
 
 import wrapper
+from wrapper import Position
 
 
-class TestWrapper(unittest.TestCase):
-    def assertTransform(self, line: int, col: int, content: str, expected_output: str) -> None:
+class BaseWrapperTestCase(unittest.TestCase):
+    def assertTransforms(
+        self,
+        positions: List[Position],
+        content: str,
+        expected_output: str,
+        *,
+        message: str = "Bad transformations"
+    ) -> None:
         # Normalise from triple quoted strings
         content = textwrap.dedent(content[1:])
         expected_output = textwrap.dedent(expected_output[1:])
 
-        new_content, _ = wrapper.process(wrapper.Position(line, col), content, 'demo.py')
+        new_content, _ = wrapper.process(positions, content, 'demo.py')
 
-        self.assertEqual(expected_output, new_content, "Bad transformation")
+        self.assertEqual(expected_output, new_content, message)
 
+    def assertTransform(self, line: int, col: int, content: str, expected_output: str) -> None:
+        self.assertTransforms(
+            [Position(line, col)],
+            content,
+            expected_output,
+            message="Bad transformation",
+        )
+
+
+class TestWrapper(BaseWrapperTestCase):
     def test_single_key_dict_literal(self) -> None:
         self.assertTransform(
             1,
@@ -956,6 +975,121 @@ class TestWrapper(unittest.TestCase):
                 pass
             """,
         )
+
+
+class TestMultiEditing(BaseWrapperTestCase):
+    def test_overlap_same_statement(self) -> None:
+        with self.assertRaises(wrapper.EditsOverlapError):
+            self.assertTransforms(
+                [
+                    wrapper.Position(1, 8),
+                    wrapper.Position(1, 12),
+                ],
+                """
+                foo = {'abcd': 1234}
+                """,
+                "",
+            )
+
+    def test_overlap_nested_statement(self) -> None:
+        with self.assertRaises(wrapper.EditsOverlapError):
+            self.assertTransforms(
+                [
+                    wrapper.Position(1, 10),
+                    wrapper.Position(1, 25),
+                ],
+                """
+                foo = {'abcd': bar(ghij=5432)}
+                """,
+                "",
+            )
+
+    def test_same_line(self) -> None:
+        # Not completely sure why you'd want to do this, but it proves that
+        # we're actually validating that the edits don't overlap, rather that
+        # not being in the same statement or something else.
+        self.assertTransforms(
+            [
+                wrapper.Position(1, 10),
+                wrapper.Position(1, 30),
+            ],
+            """
+            func({'abcd': 1234}, bar(ghij=5432))
+            """,
+            """
+            func({
+                'abcd': 1234,
+            }, bar(
+                ghij=5432,
+            ))
+            """,
+        )
+
+    def test_separate_lines(self) -> None:
+        self.assertTransforms(
+            [
+                wrapper.Position(1, 8),
+                wrapper.Position(2, 8),
+            ],
+            """
+            foo = {'abcd': 1234}
+            bar(ghij=5432)
+            """,
+            """
+            foo = {
+                'abcd': 1234,
+            }
+            bar(
+                ghij=5432,
+            )
+            """,
+        )
+
+
+class TestAllAreDisjoint(unittest.TestCase):
+    def test_ok(self) -> None:
+        self.assertTrue(wrapper.all_are_disjoint([
+            [Position(1, 1), Position(2, 1)],
+            [Position(3, 1), Position(4, 1)],
+            [Position(5, 1), Position(6, 1)],
+        ]))
+
+    def test_first_two_overlap(self) -> None:
+        self.assertFalse(wrapper.all_are_disjoint([
+            [Position(1, 1), Position(2, 10)],
+            [Position(2, 1), Position(4, 1)],
+            [Position(5, 1), Position(6, 1)],
+        ]))
+
+    def test_first_and_last_overlap(self) -> None:
+        self.assertFalse(wrapper.all_are_disjoint([
+            [Position(2, 1), Position(4, 1)],
+            [Position(5, 1), Position(6, 1)],
+            [Position(1, 1), Position(2, 10)],
+        ]))
+
+    def test_last_overlaps_with_all_others(self) -> None:
+        self.assertFalse(wrapper.all_are_disjoint([
+            [Position(1, 1), Position(2, 10)],
+            [Position(3, 1), Position(4, 1)],
+            [Position(6, 1), Position(2, 1)],
+        ]))
+
+    def test_overlap_three_of_four(self) -> None:
+        self.assertFalse(wrapper.all_are_disjoint([
+            [Position(1, 1), Position(2, 10)],
+            [Position(1, 1), Position(4, 1)],
+            [Position(1, 1), Position(6, 1)],
+            [Position(10, 1), Position(6, 1)],
+        ]))
+
+    def test_all_overlap(self) -> None:
+        self.assertFalse(wrapper.all_are_disjoint([
+            [Position(1, 1), Position(2, 10)],
+            [Position(3, 1), Position(1, 1)],
+            [Position(6, 1), Position(2, 1)],
+        ]))
+
 
 if __name__ == '__main__':
     unittest.main(__name__)
