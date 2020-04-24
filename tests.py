@@ -907,6 +907,55 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_empty_class_definition(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            class Foo:
+                pass
+            """,
+            """
+            class Foo:
+                pass
+            """,
+        )
+
+    def test_class_definition_with_parents(self) -> None:
+        self.assertTransform(
+            1,
+            10,
+            """
+            class Foo(ParentA, ParentB):
+                pass
+            """,
+            """
+            class Foo(
+                ParentA,
+                ParentB,
+            ):
+                pass
+            """,
+        )
+
+    def test_class_definition_with_many_args(self) -> None:
+        self.assertTransform(
+            1,
+            10,
+            """
+            class Foo(first, * args, second='ham', ** kwargs):
+                pass
+            """,
+            """
+            class Foo(
+                first,
+                * args,
+                second='ham',
+                ** kwargs,
+            ):
+                pass
+            """,
+        )
 
 if __name__ == '__main__':
     unittest.main(__name__)

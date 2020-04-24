@@ -245,6 +245,41 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
     return summary
 
 
+@node_wrapper(ast.ClassDef)
+def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
+    if not node.bases and not node.keywords:
+        return []
+
+    named_args = node.keywords
+    kwargs = None
+    if named_args and named_args[-1].arg is None:
+        named_args = node.keywords[:-1]
+        kwargs = node.keywords[-1]
+
+    args = [*node.bases, *named_args]
+    summary = wrap_node_start_positions(args)
+
+    if kwargs is not None:
+        kwargs_stars = asttokens.prev_token(kwargs.first_token)
+        summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
+        summary.append((Position(*kwargs.last_token.end), MutationType.TRAILING_COMMA))
+        summary.append((Position(*kwargs.last_token.end), MutationType.WRAP))
+
+    else:
+        last_token_before_body = asttokens.next_token(args[-1].last_token)
+
+        summary.append((
+            Position(*last_token_before_body.start),
+            MutationType.TRAILING_COMMA,
+        ))
+        summary.append((
+            Position(*last_token_before_body.start),
+            MutationType.WRAP,
+        ))
+
+    return summary
+
+
 @node_wrapper(ast.Dict)
 def wrap_dict(asttokens: ASTTokens, node: ast.Dict) -> WrappingSummary:
     summary = wrap_node_start_positions(node.keys)
