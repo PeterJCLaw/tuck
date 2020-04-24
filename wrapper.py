@@ -186,6 +186,17 @@ def append_wrap_end(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
     return summary
 
 
+@node_wrapper(ast.Attribute)
+def wrap_attribute(asttokens: ASTTokens, node: ast.Attribute) -> WrappingSummary:
+    # Actively choose not to wrap attributes, mostly so that in things like:
+    # func("a long string with a {placeholder} and then a ".format(placeholder=value))
+    # attempting to wrap on the string doesn't wrap the .format(), which is
+    # unlikely to be intended. More likely the user wants to wrap the `func()`
+    # call's arguments, but that's harder to support.
+    # Better to do nothing than do something we believe is likely wrong.
+    return []
+
+
 @node_wrapper(ast.Call)
 def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
     named_args = node.keywords
@@ -324,6 +335,10 @@ def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
 
 
 def indent_interim_lines(insertions: List[Insertion]) -> None:
+    if not insertions:
+        # No changes to be made
+        return
+
     first_line = insertions[0][0].line
     last_line = insertions[-1][0].line
 

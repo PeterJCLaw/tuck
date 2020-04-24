@@ -407,6 +407,32 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_doesnt_wrap_method_on_owning_object(self) -> None:
+        self.assertTransform(
+            1,
+            6,
+            """
+            foo.bar.baz(arg=value)
+            """,
+            """
+            foo.bar.baz(arg=value)
+            """,
+        )
+
+    def test_wraps_on_method_name(self) -> None:
+        self.assertTransform(
+            1,
+            10,
+            """
+            foo.bar.baz(arg=value)
+            """,
+            """
+            foo.bar.baz(
+                arg=value,
+            )
+            """,
+        )
+
     def test_function_call(self) -> None:
         self.assertTransform(
             1,
