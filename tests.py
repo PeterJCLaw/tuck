@@ -421,6 +421,78 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_mixed_boolean_expression_middle_and(self) -> None:
+        # Not sure I like this output.
+        self.assertTransform(
+            1,
+            16,
+            """
+            if foo or bar and baz or spam:
+                print()
+            """,
+            """
+            if foo or (
+                bar and
+                baz
+            ) or spam:
+                print()
+            """,
+        )
+
+    def test_mixed_boolean_expression_outer_or(self) -> None:
+        # Not sure I like this output.
+        self.assertTransform(
+            1,
+            8,
+            """
+            if foo or bar and baz or spam:
+                print()
+            """,
+            """
+            if (
+                foo or
+                bar and baz or
+                spam
+            ):
+                print()
+            """,
+        )
+
+    def test_mixed_boolean_expression_middle_or(self) -> None:
+        self.assertTransform(
+            1,
+            16,
+            """
+            if foo and bar or baz and spam:
+                print()
+            """,
+            """
+            if (
+                foo and bar or
+                baz and spam
+            ):
+                print()
+            """,
+        )
+
+    def test_mixed_boolean_expression_outer_and(self) -> None:
+        # Not sure I like this output.
+        self.assertTransform(
+            1,
+            8,
+            """
+            if foo and bar or baz and spam:
+                print()
+            """,
+            """
+            if (
+                foo and
+                bar
+            ) or baz and spam:
+                print()
+            """,
+        )
+
     def test_parenthesized_boolean_expression(self) -> None:
         self.assertTransform(
             1,
