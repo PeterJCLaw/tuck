@@ -562,6 +562,127 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_indented_nested_function_call(self) -> None:
+        self.assertTransform(
+            2,
+            24,
+            """
+            if True:
+                foo(bar=quox('abcd', foo=42))
+            """,
+            """
+            if True:
+                foo(bar=quox(
+                    'abcd',
+                    foo=42,
+                ))
+            """,
+        )
+
+    def test_indented_nested_function_call_already_partially_wrapped(self) -> None:
+        self.assertTransform(
+            5,
+            5,
+            """
+            if True:
+                foo("abcd {} {}".format(
+                    'efgh',
+                    'ijkl',
+                ))
+            """,
+            """
+            if True:
+                foo(
+                    "abcd {} {}".format(
+                        'efgh',
+                        'ijkl',
+                    ),
+                )
+            """,
+        )
+
+    def test_indented_double_nested_function_call(self) -> None:
+        self.assertTransform(
+            2,
+            34,
+            """
+            if True:
+                foo(bar=quox(spam=ham('abcd', 'efgh')))
+            """,
+            """
+            if True:
+                foo(bar=quox(spam=ham(
+                    'abcd',
+                    'efgh',
+                )))
+            """,
+        )
+
+    def test_indented_double_nested_function_call_outer_already_partially_wrapped(
+        self,
+    ) -> None:
+        self.assertTransform(
+            3,
+            34,
+            """
+            if True:
+                foo(
+                    bar=quox(spam=ham('abcd', 'efgh')),
+                )
+            """,
+            """
+            if True:
+                foo(
+                    bar=quox(spam=ham(
+                        'abcd',
+                        'efgh',
+                    )),
+                )
+            """,
+        )
+
+    def test_indented_double_nested_function_call_outer_already_fully_wrapped(self) -> None:
+        self.assertTransform(
+            4,
+            24,
+            """
+            if True:
+                foo(
+                    bar=quox(
+                        spam=ham('abcd', 'efgh'),
+                    ),
+                )
+            """,
+            """
+            if True:
+                foo(
+                    bar=quox(
+                        spam=ham(
+                            'abcd',
+                            'efgh',
+                        ),
+                    ),
+                )
+            """,
+        )
+
+    def test_indented_nested_function_call_with_preceding_arg(self) -> None:
+        self.assertTransform(
+            2,
+            34,
+            """
+            if True:
+                foo(spam='ham', bar=quox('abcd', foo=42))
+            """,
+            """
+            if True:
+                foo(spam='ham', bar=quox(
+                    'abcd',
+                    foo=42,
+                ))
+            """,
+        )
+
     def test_function_definition(self) -> None:
         self.assertTransform(
             1,

@@ -323,7 +323,7 @@ def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
     return next_tok.start[1]  # type: ignore
 
 
-def indent_interim_lines(insertions: List[Insertion], current_indent: int) -> None:
+def indent_interim_lines(insertions: List[Insertion]) -> None:
     first_line = insertions[0][0].line
     last_line = insertions[-1][0].line
 
@@ -337,7 +337,7 @@ def indent_interim_lines(insertions: List[Insertion], current_indent: int) -> No
     # touching.
     for line in range(first_line + 1, last_line + 1):
         insertions.append(
-            (Position(line, 0), " " * (current_indent + INDENT_SIZE)),
+            (Position(line, 0), " " * INDENT_SIZE),
         )
 
     insertions.sort(key=lambda x: x[0])
@@ -367,7 +367,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
         for pos, mutation_type in wrapping_summary
     ]
 
-    indent_interim_lines(insertions, current_indent)
+    indent_interim_lines(insertions)
 
     return insertions
 
