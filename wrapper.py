@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import ast
 import enum
 import json
@@ -7,6 +8,7 @@ import token
 import difflib
 import argparse
 import functools
+import itertools
 from typing import Dict, List, Type, Tuple, Union, TypeVar, Callable, Iterable
 
 from asttokens import ASTTokens  # type: ignore
@@ -19,6 +21,8 @@ class MutationType(enum.Enum):
     WRAP = 'wrap'
     WRAP_INDENT = 'wrap_indent'
     TRAILING_COMMA = 'trailing_comma'
+    OPEN_PAREN = 'open_paren'
+    CLOSE_PAREN = 'close_paren'
 
 
 WrappingSummary = List[Tuple['Position', MutationType]]
@@ -197,6 +201,31 @@ def wrap_attribute(asttokens: ASTTokens, node: ast.Attribute) -> WrappingSummary
     return []
 
 
+@node_wrapper(ast.BoolOp)
+def wrap_bool_op(asttokens: ASTTokens, node: ast.BoolOp) -> WrappingSummary:
+    if os.environ.get('DEBUG'): print('ptvsd'); import ptvsd; ptvsd.enable_attach(); ptvsd.wait_for_attach(); breakpoint()
+
+    summary = wrap_node_start_positions(node.values)
+
+    summary.append((
+        Position(*node.last_token.end),
+        MutationType.WRAP,
+    ))
+
+    # Work out if we have parentheses already, if not we need to add some
+    if asttokens.prev_token(node.first_token).string != '(':
+        summary.insert(0, (
+            Position.from_node_start(node),
+            MutationType.OPEN_PAREN,
+        ))
+        summary.append((
+            Position(*node.last_token.end),
+            MutationType.CLOSE_PAREN,
+        ))
+
+    return summary
+
+
 @node_wrapper(ast.Call)
 def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
     named_args = node.keywords
@@ -358,6 +387,11 @@ def indent_interim_lines(insertions: List[Insertion]) -> None:
     insertions.sort(key=lambda x: x[0])
 
 
+def coalesce(summary: WrappingSummary) -> Iterable[Tuple[Position, List[MutationType]]]:
+    for pos, grouped in itertools.groupby(summary, lambda x: x[0]):
+        yield pos, [x for _, x in grouped]
+
+
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position)
     finder.visit(asttokens.tree)
@@ -373,13 +407,16 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
         MutationType.WRAP: "\n" + " " * current_indent,
         MutationType.WRAP_INDENT: "\n" + " " * (current_indent + INDENT_SIZE),
         MutationType.TRAILING_COMMA: ",",
+        # TODO: would be nice if we didn't need to include a space here
+        MutationType.OPEN_PAREN: " (",
+        MutationType.CLOSE_PAREN: ")",
     }
 
     wrapping_summary = get_wrapping_summary(asttokens, node)
 
     insertions = [
-        (pos, mutations[mutation_type])
-        for pos, mutation_type in wrapping_summary
+        (pos, ''.join(mutations[x] for x in mutation_types))
+        for pos, mutation_types in coalesce(wrapping_summary)
     ]
 
     indent_interim_lines(insertions)

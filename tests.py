@@ -386,6 +386,58 @@ class TestWrapper(unittest.TestCase):
             """,
         )
 
+    def test_boolean_expression(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            if foo and bar:
+                print()
+            """,
+            """
+            if (
+                foo and
+                bar
+            ):
+                print()
+            """,
+        )
+
+    def test_long_boolean_expression(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            if foo and bar and baz:
+                print()
+            """,
+            """
+            if (
+                foo and
+                bar and
+                baz
+            ):
+                print()
+            """,
+        )
+
+    def test_parenthesized_boolean_expression(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            if (foo and bar):
+                print()
+            """,
+            """
+            if (
+                foo and
+                bar
+            ):
+                print()
+            """,
+        )
+
     def test_nested_wrapped_entity_in_unwrapped_entity(self) -> None:
         self.assertTransform(
             1,
