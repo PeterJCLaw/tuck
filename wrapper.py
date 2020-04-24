@@ -62,9 +62,9 @@ class Position:
 
         return self.line == other.line and self.col == other.col
 
-    def __lt__(self, other: object) -> bool:
+    def __lt__(self, other: 'Position') -> bool:
         if not isinstance(other, Position):
-            return NotImplemented
+            return NotImplemented  # type: ignore  # unreachable
 
         if self.line < other.line:
             return True
