@@ -10,7 +10,7 @@ import functools
 import itertools
 from typing import Dict, List, Type, Tuple, Union, TypeVar, Callable, Iterable
 
-import asttokens.util
+import asttokens.util  # type: ignore[import]
 from asttokens import ASTTokens
 
 TAst = TypeVar('TAst', bound=ast.AST)
