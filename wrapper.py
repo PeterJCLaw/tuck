@@ -10,7 +10,8 @@ import functools
 import itertools
 from typing import Dict, List, Type, Tuple, Union, TypeVar, Callable, Iterable
 
-from asttokens import ASTTokens  # type: ignore
+import asttokens.util
+from asttokens import ASTTokens
 
 TAst = TypeVar('TAst', bound=ast.AST)
 INDENT_SIZE = 4
@@ -35,6 +36,15 @@ class EditsOverlapError(Exception):
     pass
 
 
+def _first_token(node: ast.AST) -> asttokens.util.Token:
+    return node.first_token  # type: ignore[attr-defined]
+
+
+def _last_token(node: ast.AST) -> asttokens.util.Token:
+    return node.last_token  # type: ignore[attr-defined]
+
+
+
 @functools.total_ordering
 class Position:
     """
@@ -45,15 +55,11 @@ class Position:
 
     @classmethod
     def from_node_start(cls, node: ast.AST) -> 'Position':
-        return cls(
-            *node.first_token.start,  # type: ignore # `first_token` is added by asttokens
-        )
+        return cls(*_first_token(node).start)
 
     @classmethod
     def from_node_end(cls, node: ast.AST) -> 'Position':
-        return cls(
-            *node.last_token.start,  # type: ignore # `last_token` is added by asttokens
-        )
+        return cls(*_last_token(node).start)
 
     def __init__(self, line: int, col: int) -> None:
         self.line = line
@@ -170,7 +176,7 @@ def wrap_generator_body(
     for generator in generators:
         start_positions.append(Position.from_node_start(generator))
         for compare in generator.ifs:
-            if_token = asttokens.prev_token(compare.first_token)
+            if_token = asttokens.prev_token(_first_token(compare))
             assert if_token.string == 'if'
             start_positions.append(Position(*if_token.start))
 
@@ -209,18 +215,18 @@ def wrap_bool_op(asttokens: ASTTokens, node: ast.BoolOp) -> WrappingSummary:
     summary = wrap_node_start_positions(node.values)
 
     summary.append((
-        Position(*node.last_token.end),
+        Position(*_last_token(node).end),
         MutationType.WRAP,
     ))
 
     # Work out if we have parentheses already, if not we need to add some
-    if asttokens.prev_token(node.first_token).string != '(':
+    if asttokens.prev_token(_first_token(node)).string != '(':
         summary.insert(0, (
             Position.from_node_start(node),
             MutationType.OPEN_PAREN,
         ))
         summary.append((
-            Position(*node.last_token.end),
+            Position(*_last_token(node).end),
             MutationType.CLOSE_PAREN,
         ))
 
@@ -238,7 +244,7 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
     summary = wrap_node_start_positions([*node.args, *named_args])
 
     if kwargs is not None:
-        kwargs_stars = asttokens.prev_token(kwargs.first_token)
+        kwargs_stars = asttokens.prev_token(_first_token(kwargs))
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
 
     append_trailing_comma(summary, node)
@@ -261,13 +267,13 @@ def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
     summary = wrap_node_start_positions(args)
 
     if kwargs is not None:
-        kwargs_stars = asttokens.prev_token(kwargs.first_token)
+        kwargs_stars = asttokens.prev_token(_first_token(kwargs))
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
-        summary.append((Position(*kwargs.last_token.end), MutationType.TRAILING_COMMA))
-        summary.append((Position(*kwargs.last_token.end), MutationType.WRAP))
+        summary.append((Position(*_last_token(kwargs).end), MutationType.TRAILING_COMMA))
+        summary.append((Position(*_last_token(kwargs).end), MutationType.WRAP))
 
     else:
-        last_token_before_body = asttokens.next_token(args[-1].last_token)
+        last_token_before_body = asttokens.next_token(_last_token(args[-1]))
 
         summary.append((
             Position(*last_token_before_body.start),
@@ -302,13 +308,13 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
 
     if node.args.vararg:
         # Account for the * before the name
-        args_star = asttokens.prev_token(node.args.vararg.first_token)
+        args_star = asttokens.prev_token(_first_token(node.args.vararg))
         positions.append(Position(*args_star.start))
 
     if node.args.kwonlyargs:
         # Account for the unnamed *
         if not node.args.vararg:
-            comma = asttokens.prev_token(node.args.kwonlyargs[0].first_token)
+            comma = asttokens.prev_token(_first_token(node.args.kwonlyargs[0]))
             args_star = asttokens.prev_token(comma)
             positions.append(Position(*args_star.start))
 
@@ -316,7 +322,7 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
 
     if node.args.kwarg:
         # Account for the ** before the name
-        kwargs_stars = asttokens.prev_token(node.args.kwarg.first_token)
+        kwargs_stars = asttokens.prev_token(_first_token(node.args.kwarg))
         positions.append(Position(*kwargs_stars.start))
 
     summary = [
@@ -324,7 +330,7 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
         for pos in positions
     ]
 
-    close_paren = asttokens.next_token(node.args.last_token)
+    close_paren = asttokens.next_token(_last_token(node.args))
     args_end = Position(*close_paren.start)
 
     if not (node.args.kwonlyargs or node.args.kwarg):
@@ -339,7 +345,7 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
 def wrap_generator_exp(asttokens: ASTTokens, node: ast.GeneratorExp) -> WrappingSummary:
     summary = wrap_generator_body(asttokens, node.elt, node.generators)
 
-    next_token = asttokens.next_token(node.last_token)
+    next_token = asttokens.next_token(_last_token(node))
     if next_token.string == ')':
         summary.append((
             Position(*next_token.start),
@@ -388,7 +394,7 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
 
 
 def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
-    first_token = node.first_token  # type: ignore
+    first_token = _first_token(node)
     lineno = first_token.start[0]
 
     next_tok = tok = first_token
