@@ -510,6 +510,8 @@ def apply_insertions(content: str, insertions: List[Insertion]) -> str:
         col = position.col
 
         text = new_content[line]
+        # TODO: This rstrip() doesn't appear in the --edits output, leading to
+        # incorect wrapping in editors.
         new_content[line] = text[:col].rstrip() + insertion + text[col:]
 
     return "".join(new_content)
