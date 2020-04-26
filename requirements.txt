@@ -1,2 +1,2 @@
-asttokens==2.0.2
+asttokens==2.0.4
 six==1.14.0
