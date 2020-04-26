@@ -80,6 +80,22 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    def test_dict_literal_with_star_star(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = {'key': 1234, **others, 'later': 2}
+            """,
+            """
+            foo = {
+                'key': 1234,
+                **others,
+                'later': 2,
+            }
+            """,
+        )
+
     def test_ignores_nested_dict(self) -> None:
         self.assertTransform(
             1,

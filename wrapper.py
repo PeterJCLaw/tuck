@@ -289,7 +289,16 @@ def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
 
 @node_wrapper(ast.Dict)
 def wrap_dict(asttokens: ASTTokens, node: ast.Dict) -> WrappingSummary:
-    summary = wrap_node_start_positions(node.keys)
+    positions = []
+
+    for key, value in zip(node.keys, node.values):
+        if key is not None:
+            positions.append(Position.from_node_start(key))
+        else:
+            kwargs_stars = asttokens.prev_token(_first_token(value))
+            positions.append(Position(*kwargs_stars.start))
+
+    summary = [(x, MutationType.WRAP_INDENT) for x in positions]
     append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
     return summary
