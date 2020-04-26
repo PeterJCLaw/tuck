@@ -44,7 +44,6 @@ def _last_token(node: ast.AST) -> asttokens.util.Token:
     return node.last_token  # type: ignore[attr-defined]
 
 
-
 @functools.total_ordering
 class Position:
     """
@@ -565,7 +564,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         'file',
         type=argparse.FileType(mode='r'),
-        help="The file to read from. Use '-' to read from STDIN."
+        help="The file to read from. Use '-' to read from STDIN.",
     )
     parser.add_argument(
         '--positions',
