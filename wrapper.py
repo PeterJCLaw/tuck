@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import ast
 import enum
 import json
@@ -207,8 +206,6 @@ def wrap_attribute(asttokens: ASTTokens, node: ast.Attribute) -> WrappingSummary
 
 @node_wrapper(ast.BoolOp)
 def wrap_bool_op(asttokens: ASTTokens, node: ast.BoolOp) -> WrappingSummary:
-    if os.environ.get('DEBUG'): print('ptvsd'); import ptvsd; ptvsd.enable_attach(); ptvsd.wait_for_attach(); breakpoint()
-
     summary = wrap_node_start_positions(node.values)
 
     summary.append((
