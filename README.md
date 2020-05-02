@@ -1,5 +1,7 @@
 # Tuck
 
+[![CircleCI](https://circleci.com/gh/PeterJCLaw/tuck.svg?style=svg)](https://circleci.com/gh/PeterJCLaw/tuck)
+
 Semi-automated Python formatting.
 
 The aim of this tool is to build up developer-assistance tooling for python
