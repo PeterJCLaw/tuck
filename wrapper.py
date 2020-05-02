@@ -99,18 +99,15 @@ class NodeFinder(ast.NodeVisitor):
         if not self.found:
             raise ValueError("No node found!")
 
-        try:
-            return next(
-                node
-                for node in reversed(self.node_stack)
-                if isinstance(node, WRAPPABLE_NODE_TYPES)
-            )
-        except StopIteration:
-            raise ValueError(
-                "No supported nodes found (stack: {})".format(
-                    " > ".join(type(x).__name__ for x in self.node_stack),
-                ),
-            ) from None
+        for node in reversed(self.node_stack):
+            if isinstance(node, WRAPPABLE_NODE_TYPES):
+                return node
+
+        raise ValueError(
+            "No supported nodes found (stack: {})".format(
+                " > ".join(type(x).__name__ for x in self.node_stack),
+            ),
+        )
 
     def generic_visit(self, node: ast.AST) -> None:
         if self.found:
