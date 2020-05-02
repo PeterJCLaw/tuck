@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import textwrap
 import unittest
 from typing import List
@@ -343,6 +344,7 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression(self) -> None:
         self.assertTransform(
             1,
@@ -358,6 +360,7 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_as_only_argument(self) -> None:
         self.assertTransform(
             1,
@@ -373,6 +376,7 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_as_argument(self) -> None:
         self.assertTransform(
             1,
@@ -388,6 +392,7 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_with_conditonal(self) -> None:
         self.assertTransform(
             1,
@@ -404,6 +409,7 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_with_conditonal_and_inner_loop(self) -> None:
         self.assertTransform(
             1,
