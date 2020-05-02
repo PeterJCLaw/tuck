@@ -97,6 +97,17 @@ class NoNodeFoundError(NodeSearchError):
         super().__init__('no_node_found', "No AST nodes were found!")
 
 
+class NoSuitableNodeFoundError(NodeSearchError):
+    def __init__(self, node_stack: List[ast.AST]) -> None:
+        self.node_stack = node_stack
+        super().__init__(
+            'no_suitable_node_found',
+            "No suitable node found (stack: {})".format(
+                " > ".join(type(x).__name__ for x in node_stack),
+            ),
+        )
+
+
 class NoSupportedNodeFoundError(NodeSearchError):
     def __init__(self, node_stack: List[ast.AST]) -> None:
         self.node_stack = node_stack
@@ -121,8 +132,16 @@ class NodeFinder(ast.NodeVisitor):
         if not self.found:
             raise NoNodeFoundError()
 
-        for node in reversed(self.node_stack):
+        for node, prev_node in zip(
+            reversed(self.node_stack),
+            [None, *reversed(self.node_stack)],
+        ):
             if isinstance(node, WRAPPABLE_NODE_TYPES):
+                if prev_node and prev_node in getattr(node, 'body', ()):
+                    # Don't infer upwards from a function definition or if
+                    # statement body to the container.
+                    raise NoSuitableNodeFoundError(self.node_stack)
+
                 return node
 
         raise NoSupportedNodeFoundError(self.node_stack)

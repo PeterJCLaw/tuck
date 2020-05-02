@@ -1111,6 +1111,36 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
                 "",
             )
 
+    def test_if_body_unsuitable(self) -> None:
+        with self.assertRaises(wrapper.NoSuitableNodeFoundError):
+            self.assertTransform(
+                2,
+                6,
+                """
+                if a or b:
+                    raise Exception
+                """,
+                """
+                if a or b:
+                    raise Exception
+                """,
+            )
+
+    def test_function_body_unsuitable(self) -> None:
+        with self.assertRaises(wrapper.NoSuitableNodeFoundError):
+            self.assertTransform(
+                2,
+                6,
+                """
+                def foo(first):
+                    raise Exception
+                """,
+                """
+                def foo(first):
+                    raise Exception
+                """,
+            )
+
 
 class TestMultiEditing(BaseWrapperTestCase):
     def test_overlap_same_statement(self) -> None:
