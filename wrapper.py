@@ -363,6 +363,13 @@ def wrap_generator_exp(asttokens: ASTTokens, node: ast.GeneratorExp) -> Wrapping
     return summary
 
 
+@node_wrapper(ast.If)
+def wrap_if(asttokens: ASTTokens, node: ast.If) -> WrappingSummary:
+    if isinstance(node.test, ast.BoolOp):
+        return wrap_bool_op(asttokens, node.test)
+    return []
+
+
 @node_wrapper(ast.List)
 def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
     summary = wrap_node_start_positions(node.elts)

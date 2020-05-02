@@ -421,6 +421,44 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_statement(self) -> None:
+        self.assertTransform(
+            1,
+            1,
+            """
+            if foo and bar:
+                print()
+            """,
+            """
+            if (
+                foo and
+                bar
+            ):
+                print()
+            """,
+        )
+
+    def test_elif_statement(self) -> None:
+        self.assertTransform(
+            3,
+            1,
+            """
+            if foo and bar:
+                print()
+            elif foo and bar:
+                print()
+            """,
+            """
+            if foo and bar:
+                print()
+            elif (
+                foo and
+                bar
+            ):
+                print()
+            """,
+        )
+
     def test_boolean_expression(self) -> None:
         self.assertTransform(
             1,
