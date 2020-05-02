@@ -94,7 +94,7 @@ class NodeSearchError(ValueError):
 
 class NoNodeFoundError(NodeSearchError):
     def __init__(self) -> None:
-        super().__init__('no_node_found', "No node found!")
+        super().__init__('no_node_found', "No AST nodes were found!")
 
 
 class NoSupportedNodeFoundError(NodeSearchError):
