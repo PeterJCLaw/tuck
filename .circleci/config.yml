@@ -5,9 +5,16 @@ references:
     run:
       name: Build checksum file
       command: |
-        cat requirements.txt >> all-requirements.txt
-        cat script/linting/requirements.txt >> all-requirements.txt
-        cat script/typing/requirements.txt >> all-requirements.txt
+        declare -a FILES=(
+          "requirements.txt"
+          "script/linting/requirements.txt"
+          "script/typing/requirements.txt"
+        )
+        for f in ${FILES[@]}
+        do
+          echo "# $f" >> all-requirements.txt
+          cat $f >> all-requirements.txt
+        done
   restore-dependencies-cache: &restore-dependencies-cache
     restore_cache:
       keys:
