@@ -1085,6 +1085,33 @@ class TestWrapper(BaseWrapperTestCase):
         )
 
 
+class TestNodeSearchFailures(BaseWrapperTestCase):
+    def test_no_node(self) -> None:
+        with self.assertRaises(wrapper.NoNodeFoundError):
+            self.assertTransform(
+                1,
+                1,
+                """
+                # abcd
+                """,
+                "",
+            )
+
+    def test_no_supported_node(self) -> None:
+        with self.assertRaises(wrapper.NoSupportedNodeFoundError):
+            self.assertTransform(
+                1,
+                1,
+                """
+                try:
+                    pass
+                except:
+                    pass
+                """,
+                "",
+            )
+
+
 class TestMultiEditing(BaseWrapperTestCase):
     def test_overlap_same_statement(self) -> None:
         with self.assertRaises(wrapper.EditsOverlapError):

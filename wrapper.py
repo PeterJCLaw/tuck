@@ -86,6 +86,28 @@ class Position:
         return 'Position(line={}, col={})'.format(self.line, self.col)
 
 
+class NodeSearchError(ValueError):
+    def __init__(self, code: str, message: str) -> None:
+        self.code = code
+        self.message = message
+
+
+class NoNodeFoundError(NodeSearchError):
+    def __init__(self) -> None:
+        super().__init__('no_node_found', "No node found!")
+
+
+class NoSupportedNodeFoundError(NodeSearchError):
+    def __init__(self, node_stack: List[ast.AST]) -> None:
+        self.node_stack = node_stack
+        super().__init__(
+            'no_supported_node_found',
+            "No supported nodes found (stack: {})".format(
+                " > ".join(type(x).__name__ for x in node_stack),
+            ),
+        )
+
+
 class NodeFinder(ast.NodeVisitor):
     def __init__(self, position: Position) -> None:
         self.target_position = position
@@ -97,17 +119,13 @@ class NodeFinder(ast.NodeVisitor):
     @property
     def found_node(self) -> ast.AST:
         if not self.found:
-            raise ValueError("No node found!")
+            raise NoNodeFoundError()
 
         for node in reversed(self.node_stack):
             if isinstance(node, WRAPPABLE_NODE_TYPES):
                 return node
 
-        raise ValueError(
-            "No supported nodes found (stack: {})".format(
-                " > ".join(type(x).__name__ for x in self.node_stack),
-            ),
-        )
+        raise NoSupportedNodeFoundError(self.node_stack)
 
     def generic_visit(self, node: ast.AST) -> None:
         if self.found:
