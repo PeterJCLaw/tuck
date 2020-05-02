@@ -18,7 +18,7 @@ references:
   restore-dependencies-cache: &restore-dependencies-cache
     restore_cache:
       keys:
-        - deps-py<< parameters.version >>-{{ checksum "all-requirements.txt" }}
+        - deps-1-py<< parameters.version >>-{{ checksum "all-requirements.txt" }}
   install-dependencies: &install-dependencies
     run:
       name: Install Dependencies
@@ -27,9 +27,9 @@ references:
         venv/bin/pip install -r all-requirements.txt
   save-dependencies-cache: &save-dependencies-cache
     save_cache:
-      key: deps-py<< parameters.version >>-{{ checksum "all-requirements.txt" }}
+      key: deps-1-py<< parameters.version >>-{{ checksum "all-requirements.txt" }}
       paths:
-        - /home/circleci/.cache/pypoetry/virtualenvs
+        - venv
   parametrised-python-executor: &parametrised-python-executor
     parameters:
       version:
