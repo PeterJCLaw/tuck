@@ -370,6 +370,39 @@ def wrap_if(asttokens: ASTTokens, node: ast.If) -> WrappingSummary:
     return []
 
 
+@node_wrapper(ast.IfExp)
+def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
+    if_token = asttokens.find_token(_first_token(node.test), token.NAME, 'if', reverse=True)
+    else_token = asttokens.find_token(_last_token(node.test), token.NAME, 'else')
+
+    summary = [(
+        Position(*_first_token(node).start),
+        MutationType.WRAP_INDENT,
+    ), (
+        Position(*if_token.start),
+        MutationType.WRAP_INDENT,
+    ), (
+        Position(*else_token.start),
+        MutationType.WRAP_INDENT,
+    ), (
+        Position(*_last_token(node).end),
+        MutationType.WRAP,
+    )]
+
+    # Work out if we have parentheses already, if not we need to add some
+    if asttokens.prev_token(_first_token(node)).string != '(':
+        summary.insert(0, (
+            Position.from_node_start(node),
+            MutationType.OPEN_PAREN,
+        ))
+        summary.append((
+            Position(*_last_token(node).end),
+            MutationType.CLOSE_PAREN,
+        ))
+
+    return summary
+
+
 @node_wrapper(ast.List)
 def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
     summary = wrap_node_start_positions(node.elts)

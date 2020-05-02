@@ -421,6 +421,54 @@ class TestWrapper(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_expression(self) -> None:
+        self.assertTransform(
+            1,
+            7,
+            """
+            x = a if foo and bar else b
+            """,
+            """
+            x = (
+                a
+                if foo and bar
+                else b
+            )
+            """,
+        )
+
+    def test_if_expression_parenthesised_test(self) -> None:
+        self.assertTransform(
+            1,
+            7,
+            """
+            x = a if (foo and bar) else b
+            """,
+            """
+            x = (
+                a
+                if (foo and bar)
+                else b
+            )
+            """,
+        )
+
+    def test_parenthesised_if_expression(self) -> None:
+        self.assertTransform(
+            1,
+            7,
+            """
+            x = (a if foo and bar else b)
+            """,
+            """
+            x = (
+                a
+                if foo and bar
+                else b
+            )
+            """,
+        )
+
     def test_if_statement(self) -> None:
         self.assertTransform(
             1,
