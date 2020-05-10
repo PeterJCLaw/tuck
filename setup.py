@@ -8,7 +8,7 @@ with open(os.path.join(my_dir, 'README.md')) as f:
 
 setup(
     name='tuck',
-    version='0.0.3',
+    version='0.0.4',
     url='https://github.com/PeterJCLaw/tuck',
     description="Semi-automated Python formatting.",
     long_description=long_description,
