@@ -47,8 +47,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
         MutationType.WRAP: "\n" + " " * current_indent,
         MutationType.WRAP_INDENT: "\n" + " " * (current_indent + INDENT_SIZE),
         MutationType.TRAILING_COMMA: ",",
-        # TODO: would be nice if we didn't need to include a space here
-        MutationType.OPEN_PAREN: " (",
+        MutationType.OPEN_PAREN: "(",
         MutationType.CLOSE_PAREN: ")",
     }
 

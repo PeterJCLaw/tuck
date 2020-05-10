@@ -88,8 +88,14 @@ def apply_insertions(content: str, insertions: List[Insertion]) -> str:
         col = position.col
 
         text = new_content[line]
-        # TODO: This rstrip() doesn't appear in the --edits output, leading to
-        # incorect wrapping in editors.
-        new_content[line] = text[:col].rstrip() + insertion + text[col:]
+        left, right = text[:col], text[col:]
+
+        if insertion.startswith('\n'):
+            # TODO: ideally we'd have full edit support, rather than just
+            # insertions, which would mean we could handle this at an earler
+            # stage and thus in a way that also works for editors.
+            left = left.rstrip()
+
+        new_content[line] = left + insertion + right
 
     return "".join(new_content)
