@@ -140,7 +140,27 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
         named_args = node.keywords[:-1]
         kwargs = node.keywords[-1]
 
-    summary = wrap_node_start_positions(asttokens, [*node.args, *named_args])
+    if (
+        len(node.args) == 1
+        and not named_args
+        and isinstance(node.args[0], ast.GeneratorExp)
+        and not generator_is_parenthesised(asttokens, node.args[0])
+    ):
+        generator_node = node.args[0]  # type: ast.GeneratorExp
+        # The generator needs parentheses adding, as well as wrapping
+        summary = [(
+            Position.from_node_start(generator_node),
+            MutationType.WRAP_INDENT,
+        ), (
+            Position.from_node_start(generator_node),
+            MutationType.OPEN_PAREN,
+        ), (
+            Position(*_last_token(generator_node).end),
+            MutationType.CLOSE_PAREN,
+        )]
+
+    else:
+        summary = wrap_node_start_positions(asttokens, [*node.args, *named_args])
 
     if kwargs is not None:
         kwargs_stars = asttokens.prev_token(_first_token(kwargs))

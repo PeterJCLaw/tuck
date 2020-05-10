@@ -733,6 +733,48 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_with_just_generator_arg(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            foo(x for x in 'abc')
+            """,
+            """
+            foo(
+                (x for x in 'abc'),
+            )
+            """,
+        )
+
+    def test_function_indirect_with_just_generator_arg(self) -> None:
+        self.assertTransform(
+            1,
+            25,
+            """
+            [foo][0](x for x in 'abc')
+            """,
+            """
+            [foo][0](
+                (x for x in 'abc'),
+            )
+            """,
+        )
+
+    def test_function_indirect_with_just_parenthesised_generator_arg(self) -> None:
+        self.assertTransform(
+            1,
+            27,
+            """
+            [foo][0]((x for x in 'abc'))
+            """,
+            """
+            [foo][0](
+                (x for x in 'abc'),
+            )
+            """,
+        )
+
     def test_nested_function_call(self) -> None:
         self.assertTransform(
             1,
