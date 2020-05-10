@@ -188,6 +188,22 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_generator_in_list_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            ["bar", (x for x in 'an'), "foo"]
+            """,
+            """
+            [
+                "bar",
+                (x for x in 'an'),
+                "foo",
+            ]
+            """,
+        )
+
     def test_single_entry_tuple_literal(self) -> None:
         self.assertTransform(
             1,
@@ -697,6 +713,22 @@ class TestIntegration(BaseWrapperTestCase):
             foo(
                 bar=quox('abcd', foo=42),
                 spam='ham',
+            )
+            """,
+        )
+
+    def test_function_with_generator_arg(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            foo(12, (x for x in 'abc'), 13)
+            """,
+            """
+            foo(
+                12,
+                (x for x in 'abc'),
+                13,
             )
             """,
         )

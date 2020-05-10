@@ -25,14 +25,43 @@ def node_wrapper(ast_type: Type[TAst]) -> Callable[
     return wrapper
 
 
-def node_start_positions(nodes: Iterable[ast.AST]) -> List[Position]:
-    return [Position.from_node_start(x) for x in nodes]
+def generator_is_parenthesised(asttokens: ASTTokens, node: ast.GeneratorExp) -> bool:
+    prev_token = asttokens.prev_token(_first_token(node))
+    next_token = asttokens.next_token(_last_token(node))
+    if prev_token.string == '(' and next_token.string == ')':
+        # These parens might be wrapping us
+        prev_prev_token = asttokens.prev_token(prev_token)
+        if prev_prev_token.string in ('(', ','):
+            return True
+
+    return False
 
 
-def wrap_node_start_positions(nodes: Iterable[ast.AST]) -> WrappingSummary:
+def node_start_position(asttokens: ASTTokens, node: ast.AST) -> Position:
+    first_token = _first_token(node)
+    if (
+        isinstance(node, ast.GeneratorExp)
+        and generator_is_parenthesised(asttokens, node)
+    ):
+        first_token = asttokens.prev_token(first_token)
+
+    return Position(*first_token.start)
+
+
+def node_start_positions(
+    asttokens: ASTTokens,
+    nodes: Iterable[ast.AST],
+) -> List[Position]:
+    return [node_start_position(asttokens, x) for x in nodes]
+
+
+def wrap_node_start_positions(
+    asttokens: ASTTokens,
+    nodes: Iterable[ast.AST],
+) -> WrappingSummary:
     return [
         (pos, MutationType.WRAP_INDENT)
-        for pos in node_start_positions(nodes)
+        for pos in node_start_positions(asttokens, nodes)
     ]
 
 
@@ -82,7 +111,7 @@ def wrap_attribute(asttokens: ASTTokens, node: ast.Attribute) -> WrappingSummary
 
 @node_wrapper(ast.BoolOp)
 def wrap_bool_op(asttokens: ASTTokens, node: ast.BoolOp) -> WrappingSummary:
-    summary = wrap_node_start_positions(node.values)
+    summary = wrap_node_start_positions(asttokens, node.values)
 
     summary.append((
         Position(*_last_token(node).end),
@@ -111,7 +140,7 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
         named_args = node.keywords[:-1]
         kwargs = node.keywords[-1]
 
-    summary = wrap_node_start_positions([*node.args, *named_args])
+    summary = wrap_node_start_positions(asttokens, [*node.args, *named_args])
 
     if kwargs is not None:
         kwargs_stars = asttokens.prev_token(_first_token(kwargs))
@@ -134,7 +163,7 @@ def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
         kwargs = node.keywords[-1]
 
     args = [*node.bases, *named_args]
-    summary = wrap_node_start_positions(args)
+    summary = wrap_node_start_positions(asttokens, args)
 
     if kwargs is not None:
         kwargs_stars = asttokens.prev_token(_first_token(kwargs))
@@ -183,7 +212,7 @@ def wrap_dict_comp(asttokens: ASTTokens, node: ast.DictComp) -> WrappingSummary:
 
 @node_wrapper(ast.FunctionDef)
 def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSummary:
-    positions = node_start_positions(node.args.args)
+    positions = node_start_positions(asttokens, node.args.args)
 
     if node.args.vararg:
         # Account for the * before the name
@@ -197,7 +226,7 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
             args_star = asttokens.prev_token(comma)
             positions.append(Position(*args_star.start))
 
-        positions += node_start_positions(node.args.kwonlyargs)
+        positions += node_start_positions(asttokens, node.args.kwonlyargs)
 
     if node.args.kwarg:
         # Account for the ** before the name
@@ -276,7 +305,7 @@ def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
 
 @node_wrapper(ast.List)
 def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
-    summary = wrap_node_start_positions(node.elts)
+    summary = wrap_node_start_positions(asttokens, node.elts)
     append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
     return summary
@@ -291,7 +320,7 @@ def wrap_list_comp(asttokens: ASTTokens, node: ast.ListComp) -> WrappingSummary:
 
 @node_wrapper(ast.Tuple)
 def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
-    summary = wrap_node_start_positions(node.elts)
+    summary = wrap_node_start_positions(asttokens, node.elts)
     if len(node.elts) > 1:
         append_trailing_comma(summary, node)
     append_wrap_end(summary, node)
