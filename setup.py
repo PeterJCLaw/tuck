@@ -1,6 +1,6 @@
 import os.path
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 my_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(my_dir, 'README.md')) as f:
@@ -14,7 +14,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
 
-    packages=[],
+    packages=find_packages(exclude=['tests']),
 
     author="Peter Law",
     author_email="PeterJCLaw@gmail.com",

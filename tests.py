@@ -5,8 +5,9 @@ import textwrap
 import unittest
 from typing import List
 
-import wrapper
-from wrapper import Position
+import tuck
+import tuck.editing
+from tuck import Position
 
 
 class BaseWrapperTestCase(unittest.TestCase):
@@ -22,7 +23,7 @@ class BaseWrapperTestCase(unittest.TestCase):
         content = textwrap.dedent(content[1:])
         expected_output = textwrap.dedent(expected_output[1:])
 
-        new_content, _ = wrapper.process(positions, content, 'demo.py')
+        new_content, _ = tuck.process(positions, content, 'demo.py')
 
         self.assertEqual(expected_output, new_content, message)
 
@@ -1087,7 +1088,7 @@ class TestWrapper(BaseWrapperTestCase):
 
 class TestNodeSearchFailures(BaseWrapperTestCase):
     def test_no_node(self) -> None:
-        with self.assertRaises(wrapper.NoNodeFoundError):
+        with self.assertRaises(tuck.NoNodeFoundError):
             self.assertTransform(
                 1,
                 1,
@@ -1098,7 +1099,7 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
             )
 
     def test_no_supported_node(self) -> None:
-        with self.assertRaises(wrapper.NoSupportedNodeFoundError):
+        with self.assertRaises(tuck.NoSupportedNodeFoundError):
             self.assertTransform(
                 1,
                 1,
@@ -1112,7 +1113,7 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
             )
 
     def test_if_body_unsuitable(self) -> None:
-        with self.assertRaises(wrapper.NoSuitableNodeFoundError):
+        with self.assertRaises(tuck.NoSuitableNodeFoundError):
             self.assertTransform(
                 2,
                 6,
@@ -1127,7 +1128,7 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
             )
 
     def test_function_body_unsuitable(self) -> None:
-        with self.assertRaises(wrapper.NoSuitableNodeFoundError):
+        with self.assertRaises(tuck.NoSuitableNodeFoundError):
             self.assertTransform(
                 2,
                 6,
@@ -1144,11 +1145,11 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
 
 class TestMultiEditing(BaseWrapperTestCase):
     def test_overlap_same_statement(self) -> None:
-        with self.assertRaises(wrapper.EditsOverlapError):
+        with self.assertRaises(tuck.EditsOverlapError):
             self.assertTransforms(
                 [
-                    wrapper.Position(1, 8),
-                    wrapper.Position(1, 12),
+                    tuck.Position(1, 8),
+                    tuck.Position(1, 12),
                 ],
                 """
                 foo = {'abcd': 1234}
@@ -1157,11 +1158,11 @@ class TestMultiEditing(BaseWrapperTestCase):
             )
 
     def test_overlap_nested_statement(self) -> None:
-        with self.assertRaises(wrapper.EditsOverlapError):
+        with self.assertRaises(tuck.EditsOverlapError):
             self.assertTransforms(
                 [
-                    wrapper.Position(1, 10),
-                    wrapper.Position(1, 25),
+                    tuck.Position(1, 10),
+                    tuck.Position(1, 25),
                 ],
                 """
                 foo = {'abcd': bar(ghij=5432)}
@@ -1175,8 +1176,8 @@ class TestMultiEditing(BaseWrapperTestCase):
         # not being in the same statement or something else.
         self.assertTransforms(
             [
-                wrapper.Position(1, 10),
-                wrapper.Position(1, 30),
+                tuck.Position(1, 10),
+                tuck.Position(1, 30),
             ],
             """
             func({'abcd': 1234}, bar(ghij=5432))
@@ -1193,8 +1194,8 @@ class TestMultiEditing(BaseWrapperTestCase):
     def test_separate_lines(self) -> None:
         self.assertTransforms(
             [
-                wrapper.Position(1, 8),
-                wrapper.Position(2, 8),
+                tuck.Position(1, 8),
+                tuck.Position(2, 8),
             ],
             """
             foo = {'abcd': 1234}
@@ -1213,35 +1214,35 @@ class TestMultiEditing(BaseWrapperTestCase):
 
 class TestAllAreDisjoint(unittest.TestCase):
     def test_ok(self) -> None:
-        self.assertTrue(wrapper.all_are_disjoint([
+        self.assertTrue(tuck.editing.all_are_disjoint([
             [Position(1, 1), Position(2, 1)],
             [Position(3, 1), Position(4, 1)],
             [Position(5, 1), Position(6, 1)],
         ]))
 
     def test_first_two_overlap(self) -> None:
-        self.assertFalse(wrapper.all_are_disjoint([
+        self.assertFalse(tuck.editing.all_are_disjoint([
             [Position(1, 1), Position(2, 10)],
             [Position(2, 1), Position(4, 1)],
             [Position(5, 1), Position(6, 1)],
         ]))
 
     def test_first_and_last_overlap(self) -> None:
-        self.assertFalse(wrapper.all_are_disjoint([
+        self.assertFalse(tuck.editing.all_are_disjoint([
             [Position(2, 1), Position(4, 1)],
             [Position(5, 1), Position(6, 1)],
             [Position(1, 1), Position(2, 10)],
         ]))
 
     def test_last_overlaps_with_all_others(self) -> None:
-        self.assertFalse(wrapper.all_are_disjoint([
+        self.assertFalse(tuck.editing.all_are_disjoint([
             [Position(1, 1), Position(2, 10)],
             [Position(3, 1), Position(4, 1)],
             [Position(6, 1), Position(2, 1)],
         ]))
 
     def test_overlap_three_of_four(self) -> None:
-        self.assertFalse(wrapper.all_are_disjoint([
+        self.assertFalse(tuck.editing.all_are_disjoint([
             [Position(1, 1), Position(2, 10)],
             [Position(1, 1), Position(4, 1)],
             [Position(1, 1), Position(6, 1)],
@@ -1249,7 +1250,7 @@ class TestAllAreDisjoint(unittest.TestCase):
         ]))
 
     def test_all_overlap(self) -> None:
-        self.assertFalse(wrapper.all_are_disjoint([
+        self.assertFalse(tuck.editing.all_are_disjoint([
             [Position(1, 1), Position(2, 10)],
             [Position(3, 1), Position(1, 1)],
             [Position(6, 1), Position(2, 1)],
