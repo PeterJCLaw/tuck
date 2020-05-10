@@ -45,6 +45,13 @@ references:
     matrix:
       parameters:
         version: ["3.5", "3.8"]
+  filter-tags: &filter-tags
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v.*/
+
 
 executors:
   python:
@@ -108,6 +115,26 @@ jobs:
             source venv/bin/activate
             ./script/typing/check
 
+  release:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - checkout
+
+      - run:
+          name: Setup virtualenv
+          command: |
+            python3 -m venv venv
+            venv/bin/pip install -r script/release/requirements.txt
+
+      - run:
+          name: Push to PyPI
+          command: |
+            source venv/bin/activate
+            export TWINE_USERNAME=__token__
+            export TWINE_PASSWORD=$PYPI_TOKEN
+            ./script/release/release
+
 workflows:
   version: 2.1
 
@@ -119,3 +146,21 @@ workflows:
           <<: *python-top-and-bottom-version-matrix
       - typecheck:
           <<: *python-top-and-bottom-version-matrix
+
+  release:
+    jobs:
+      - test:
+          <<: *python-full-version-matrix
+          <<: *filter-tags
+      - lint:
+          <<: *python-top-and-bottom-version-matrix
+          <<: *filter-tags
+      - typecheck:
+          <<: *python-top-and-bottom-version-matrix
+          <<: *filter-tags
+      - release:
+          <<: *filter-tags
+          requires:
+            - test
+            - lint
+            - typecheck
