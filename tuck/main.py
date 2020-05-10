@@ -7,6 +7,7 @@ from .ast import Position, NodeFinder, get_current_indent
 from .editing import (
     coalesce,
     Insertion,
+    INDENT_SIZE,
     MutationType,
     WrappingSummary,
     apply_insertions,
@@ -16,7 +17,6 @@ from .editing import (
 from .wrappers import WRAPPING_FUNTIONS
 
 TAst = TypeVar('TAst', bound=ast.AST)
-INDENT_SIZE = 4
 
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
 
