@@ -70,7 +70,7 @@ jobs:
           name: Run Tests
           command: |
             source venv/bin/activate
-            ./tests.py
+            ./run-tests
 
   lint:
     <<: *parametrised-python-executor

@@ -2,4 +2,4 @@
 if [ -z "$MYPY" ]; then
     MYPY=mypy
 fi
-exec "$MYPY" tuck wrapper.py tests.py
+exec "$MYPY" tuck tests wrapper.py
