@@ -10,6 +10,9 @@ setup(
     name='tuck',
     version='0.0.5',
     url='https://github.com/PeterJCLaw/tuck',
+    project_urls={
+        'Issue tracker': 'https://github.com/PeterJCLaw/tuck/issues',
+    },
     description="Semi-automated Python formatting.",
     long_description=long_description,
     long_description_content_type='text/markdown',
