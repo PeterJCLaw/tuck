@@ -1,7 +1,7 @@
 import ast
 import token
 import functools
-from typing import List, TypeVar
+from typing import List, Type, Tuple, TypeVar
 
 import asttokens.util  # type: ignore[import]
 from asttokens import ASTTokens
@@ -93,8 +93,9 @@ class NoSupportedNodeFoundError(NodeSearchError):
 
 
 class NodeFinder(ast.NodeVisitor):
-    def __init__(self, position: Position) -> None:
+    def __init__(self, position: Position, node_types: Tuple[Type[ast.AST], ...]) -> None:
         self.target_position = position
+        self.target_node_types = node_types
 
         self.node_stack = []  # type: List[ast.AST]
 
@@ -109,9 +110,7 @@ class NodeFinder(ast.NodeVisitor):
             reversed(self.node_stack),
             [None, *reversed(self.node_stack)],
         ):
-            from .main import WRAPPABLE_NODE_TYPES  # circular
-
-            if isinstance(node, WRAPPABLE_NODE_TYPES):
+            if isinstance(node, self.target_node_types):
                 if prev_node and prev_node in getattr(node, 'body', ()):
                     # Don't infer upwards from a function definition or if
                     # statement body to the container.

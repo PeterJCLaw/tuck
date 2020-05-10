@@ -33,7 +33,7 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
 
 
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
-    finder = NodeFinder(position)
+    finder = NodeFinder(position, WRAPPABLE_NODE_TYPES)
     finder.visit(asttokens.tree)
 
     node = finder.found_node
