@@ -8,5 +8,52 @@ The aim of this tool is to build up developer-assistance tooling for python
 formatting. In general it will only format things when it needs to or when
 directly instructed to.
 
-Current capability is wrapping of various python statements (see `demo.py`) at
-locations specified by the developer.
+## Usage
+
+Most usage of Tuck is expected to be within editor extensions:
+
+- [VSCode Tuck Extension](https://marketplace.visualstudio.com/items?itemName=peterjclaw.tuck)
+
+Tuck can be also used as a command line tool:
+
+``` bash
+python -m tuck --positions <line>:<col> -- file.py
+```
+
+## Style
+
+The wrapped statement style which Tuck targets aims to reduce diff noise without
+concern for vertical space.
+
+**Example**: Function definition
+
+``` python
+def foo(bar: str, quox: int = 0) -> List[str]:
+    return 4.2
+```
+
+wraps to:
+
+``` python
+def foo(
+    bar: str,
+    quox: int = 0,
+) -> float:
+    return 4.2
+```
+
+**Example**: List comprehension
+
+``` python
+[x for x in 'aBcD' if x.isupper()]
+```
+
+wraps to:
+
+``` python
+[
+    x
+    for x in 'aBcD'
+    if x.isupper()
+]
+```
