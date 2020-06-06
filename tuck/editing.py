@@ -10,6 +10,7 @@ INDENT_SIZE = 4
 class MutationType(enum.Enum):
     WRAP = 'wrap'
     WRAP_INDENT = 'wrap_indent'
+    INDENT = 'indent'
     TRAILING_COMMA = 'trailing_comma'
     OPEN_PAREN = 'open_paren'
     CLOSE_PAREN = 'close_paren'
@@ -23,28 +24,30 @@ class EditsOverlapError(Exception):
     pass
 
 
-def indent_interim_lines(insertions: List[Insertion]) -> None:
-    if not insertions:
+def indent_interim_lines(wrapping_summary: WrappingSummary) -> WrappingSummary:
+    if not wrapping_summary:
         # No changes to be made
-        return
+        return wrapping_summary
 
-    first_line = insertions[0][0].line
-    last_line = insertions[-1][0].line
+    first_line = wrapping_summary[0][0].line
+    last_line = wrapping_summary[-1][0].line
 
     if first_line == last_line:
         # Everything was on one line to start with, nothing for us to do.
-        return
+        return wrapping_summary
 
     # Add indentations for things which were already wrapped somewhat. We don't
     # want to touch the first line (since that's the line we're splitting up),
     # but we do want to indent anything which was already on the last line we're
     # touching.
     for line in range(first_line + 1, last_line + 1):
-        insertions.append(
-            (Position(line, 0), " " * INDENT_SIZE),
+        wrapping_summary.append(
+            (Position(line, 0), MutationType.INDENT),
         )
 
-    insertions.sort(key=lambda x: x[0])
+    wrapping_summary.sort(key=lambda x: x[0])
+
+    return wrapping_summary
 
 
 def coalesce(summary: WrappingSummary) -> Iterable[Tuple[Position, List[MutationType]]]:

@@ -46,6 +46,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
     mutations = {
         MutationType.WRAP: "\n" + " " * current_indent,
         MutationType.WRAP_INDENT: "\n" + " " * (current_indent + INDENT_SIZE),
+        MutationType.INDENT: " " * INDENT_SIZE,
         MutationType.TRAILING_COMMA: ",",
         MutationType.OPEN_PAREN: "(",
         MutationType.CLOSE_PAREN: ")",
@@ -53,12 +54,12 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
 
     wrapping_summary = get_wrapping_summary(asttokens, node)
 
+    wrapping_summary = indent_interim_lines(wrapping_summary)
+
     insertions = [
         (pos, ''.join(mutations[x] for x in mutation_types))
         for pos, mutation_types in coalesce(wrapping_summary)
     ]
-
-    indent_interim_lines(insertions)
 
     return insertions
 
