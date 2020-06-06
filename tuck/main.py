@@ -32,6 +32,32 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
     raise AssertionError("Unsupported node type {}".format(node))
 
 
+def optimise_wrapping_summary(
+    asttokens: ASTTokens,
+    wrapping_summary: WrappingSummary,
+) -> WrappingSummary:
+    """
+    The initial wrapping summary defines where a correctly tucked statement
+    should have various things, however we also need to cope with some or all of
+    them already being present.
+
+    This util inspects the actual token stream and removes anything from our
+    summary which doesn't need to happen.
+    """
+
+    def should_keep(position: Position, mutation: MutationType) -> bool:
+        if mutation == MutationType.TRAILING_COMMA:
+            tok = asttokens.get_token(position.line, position.col)
+            prev_token = asttokens.prev_token(tok)
+
+            if prev_token.string == ',':
+                return False
+
+        return True
+
+    return [x for x in wrapping_summary if should_keep(*x)]
+
+
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position, WRAPPABLE_NODE_TYPES)
     finder.visit(asttokens.tree)
@@ -53,6 +79,8 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
     }
 
     wrapping_summary = get_wrapping_summary(asttokens, node)
+
+    wrapping_summary = optimise_wrapping_summary(asttokens, wrapping_summary)
 
     wrapping_summary = indent_interim_lines(wrapping_summary)
 
