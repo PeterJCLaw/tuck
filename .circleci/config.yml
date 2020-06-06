@@ -6,7 +6,6 @@ references:
       name: Build checksum file
       command: |
         declare -a FILES=(
-          "requirements.txt"
           "script/linting/requirements.txt"
           "script/typing/requirements.txt"
         )
@@ -15,10 +14,23 @@ references:
           echo "# $f" >> all-requirements.txt
           cat $f >> all-requirements.txt
         done
+
+        echo "# self" >> all-requirements.txt
+        echo "." >> all-requirements.txt
+
+        declare -a FILES=(
+          "setup.py"
+          "all-requirements.txt"
+        )
+        for f in ${FILES[@]}
+        do
+          echo "# $f" >> .checksum
+          cat $f >> .checksum
+        done
   restore-dependencies-cache: &restore-dependencies-cache
     restore_cache:
       keys:
-        - deps-1-py<< parameters.version >>-{{ checksum "all-requirements.txt" }}
+        - deps-1-py<< parameters.version >>-{{ checksum ".checksum" }}
   install-dependencies: &install-dependencies
     run:
       name: Install Dependencies
@@ -27,7 +39,7 @@ references:
         venv/bin/pip install -r all-requirements.txt
   save-dependencies-cache: &save-dependencies-cache
     save_cache:
-      key: deps-1-py<< parameters.version >>-{{ checksum "all-requirements.txt" }}
+      key: deps-1-py<< parameters.version >>-{{ checksum ".checksum" }}
       paths:
         - venv
   parametrised-python-executor: &parametrised-python-executor
