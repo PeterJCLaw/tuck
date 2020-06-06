@@ -54,6 +54,10 @@ def indent_interim_lines(
 
             assert tok.start[0] == line, "Token unexpectedly on wrong line"
 
+        if tok.string == '\n':
+            # Empty lines don't need indenting
+            continue
+
         wrapping_summary.append(
             (Position(*tok.start), MutationType.INDENT),
         )

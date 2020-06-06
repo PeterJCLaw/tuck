@@ -917,6 +917,60 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_call_with_nested_wrapped_entity(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            func([
+                # bees
+                bees,
+
+                # bees
+                bees,
+            ])
+            """,
+            """
+            func(
+                [
+                    # bees
+                    bees,
+
+                    # bees
+                    bees,
+                ],
+            )
+            """,
+        )
+
+    def test_function_call_with_nested_wrapped_entity_multiple_blanks(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            func([
+                # bees
+                bees,
+
+
+                # bees
+                bees,
+            ])
+            """,
+            """
+            func(
+                [
+                    # bees
+                    bees,
+
+
+                    # bees
+                    bees,
+                ],
+            )
+            """,
+        )
+
     def test_indented_nested_function_call(self) -> None:
         self.assertTransform(
             2,
