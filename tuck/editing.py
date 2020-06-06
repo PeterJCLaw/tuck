@@ -2,6 +2,8 @@ import enum
 import itertools
 from typing import List, Tuple, Iterable
 
+from asttokens import ASTTokens  # type: ignore[import]
+
 from .ast import Position
 
 INDENT_SIZE = 4
@@ -24,7 +26,10 @@ class EditsOverlapError(Exception):
     pass
 
 
-def indent_interim_lines(wrapping_summary: WrappingSummary) -> WrappingSummary:
+def indent_interim_lines(
+    asttokens: ASTTokens,
+    wrapping_summary: WrappingSummary,
+) -> WrappingSummary:
     if not wrapping_summary:
         # No changes to be made
         return wrapping_summary
@@ -41,8 +46,16 @@ def indent_interim_lines(wrapping_summary: WrappingSummary) -> WrappingSummary:
     # but we do want to indent anything which was already on the last line we're
     # touching.
     for line in range(first_line + 1, last_line + 1):
+        tok = asttokens.get_token(line, 0)
+        if tok.start[0] != line:
+            # We've got the last token on the previous line, but we want the
+            # first on this line.
+            tok = asttokens.next_token(tok, include_extra=True)
+
+            assert tok.start[0] == line, "Token unexpectedly on wrong line"
+
         wrapping_summary.append(
-            (Position(line, 0), MutationType.INDENT),
+            (Position(*tok.start), MutationType.INDENT),
         )
 
     wrapping_summary.sort(key=lambda x: x[0])
