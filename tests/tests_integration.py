@@ -1,6 +1,8 @@
 import sys
 import unittest
 
+import tuck
+
 from .test_utils import BaseWrapperTestCase
 
 
@@ -645,14 +647,43 @@ class TestIntegration(BaseWrapperTestCase):
         )
 
     def test_doesnt_wrap_method_on_owning_object(self) -> None:
+        with self.assertRaises(tuck.NoSupportedNodeFoundError):
+            self.assertTransform(
+                1,
+                6,
+                """
+                foo.bar.baz(arg=value)
+                """,
+                """
+                foo.bar.baz(arg=value)
+                """,
+            )
+
+    def test_wraps_outer_on_attribute_owner(self) -> None:
         self.assertTransform(
             1,
-            6,
+            7,
             """
-            foo.bar.baz(arg=value)
+            func(foo.bar.baz(arg=value))
             """,
             """
-            foo.bar.baz(arg=value)
+            func(
+                foo.bar.baz(arg=value),
+            )
+            """,
+        )
+
+    def test_wraps_outer_on_attribute_value(self) -> None:
+        self.assertTransform(
+            1,
+            11,
+            """
+            func(foo.bar.baz(arg=value))
+            """,
+            """
+            func(
+                foo.bar.baz(arg=value),
+            )
             """,
         )
 

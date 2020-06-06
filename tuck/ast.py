@@ -101,14 +101,36 @@ class NodeFinder(ast.NodeVisitor):
 
         self.found = False
 
+    def get_filtered_stack(self) -> List[ast.AST]:
+        """
+        In some cases we want to skip over the actual place in the AST and
+        onwards to a parent node. This filtering achieves that.
+
+        For convenience we also return the stack in reversed order, so that the
+        nodes closest to the target position are at the front of the list.
+        """
+        reversed_stack = list(reversed(self.node_stack))
+
+        offset = 0
+        for index, node in enumerate(reversed_stack):
+            if isinstance(node, ast.Attribute):
+                # We want to skip self and immediate parent
+                offset = index + 2
+            else:
+                break
+
+        return reversed_stack[offset:]
+
     @property
     def found_node(self) -> ast.AST:
         if not self.found:
             raise NoNodeFoundError()
 
+        reversed_stack = self.get_filtered_stack()
+
         for node, prev_node in zip(
-            reversed(self.node_stack),
-            [None, *reversed(self.node_stack)],
+            reversed_stack,
+            [None, *reversed_stack],
         ):
             if isinstance(node, self.target_node_types):
                 if prev_node and prev_node in getattr(node, 'body', ()):
