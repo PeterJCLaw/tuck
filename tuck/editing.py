@@ -18,8 +18,8 @@ class MutationType(enum.Enum):
     CLOSE_PAREN = 'close_paren'
 
 
-WrappingSummary = List[Tuple['Position', MutationType]]
-Insertion = Tuple['Position', str]
+WrappingSummary = List[Tuple[Position, MutationType]]
+Insertion = Tuple[Position, str]
 
 
 class EditsOverlapError(Exception):
