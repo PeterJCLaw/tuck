@@ -17,3 +17,24 @@ class TestDirtyInput(BaseWrapperTestCase):
             )
             """,
         )
+
+    def test_function_call_partly_wrapped_with_comment(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            foo(
+                'abcd', 1234,
+                # comment
+                spam='ham',
+            )
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                # comment
+                spam='ham',
+            )
+            """,
+        )

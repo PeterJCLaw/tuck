@@ -53,6 +53,13 @@ def optimise_wrapping_summary(
             if prev_token.string == ',':
                 return False
 
+        elif mutation in (MutationType.WRAP, MutationType.WRAP_INDENT):
+            tok = asttokens.get_token(position.line, position.col)
+            prev_token = asttokens.prev_token(tok, include_extra=True)
+
+            if prev_token.string == '\n':
+                return False
+
         return True
 
     return [x for x in wrapping_summary if should_keep(*x)]
