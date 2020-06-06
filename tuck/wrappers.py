@@ -329,8 +329,53 @@ def wrap_list_comp(asttokens: ASTTokens, node: ast.ListComp) -> WrappingSummary:
 
 @node_wrapper(ast.Tuple)
 def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
+    first_token = _first_token(node)
+    last_token = _last_token(node)
+
+    is_parenthesised = first_token.string == '(' and last_token.string == ')'
+
+    def needs_parentheses_() -> bool:
+        prev_token = asttokens.prev_token(first_token)
+        next_token = asttokens.next_token(last_token)
+        if prev_token.string in '[' or next_token.string == ']':
+            return False
+
+        return True
+
+    needs_parentheses = needs_parentheses_()
+
     summary = wrap_node_start_positions(asttokens, node.elts)
-    if len(node.elts) > 1:
-        append_trailing_comma(summary, node)
-    append_wrap_end(summary, node)
+
+    if not is_parenthesised:
+        if needs_parentheses:
+            summary.insert(0, (
+                Position.from_node_start(node),
+                MutationType.OPEN_PAREN,
+            ))
+
+        end_pos = Position(*_last_token(node).end)
+
+        if len(node.elts) > 1:
+            summary.append((
+                end_pos,
+                MutationType.TRAILING_COMMA,
+            ))
+
+        summary.append((
+            end_pos,
+            MutationType.WRAP,
+        ))
+
+        if needs_parentheses:
+            summary.append((
+                end_pos,
+                MutationType.CLOSE_PAREN,
+            ))
+
+    else:
+        if len(node.elts) > 1:
+            append_trailing_comma(summary, node)
+
+        append_wrap_end(summary, node)
+
     return summary

@@ -236,6 +236,79 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_single_entry_tuple_containing_indexer_access(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = ('abcd'[4],)
+            """,
+            """
+            foo = (
+                'abcd'[4],
+            )
+            """,
+        )
+
+    def test_multi_entry_tuple_containing_indexer_access(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = ('abcd', 'spanner'[4])
+            """,
+            """
+            foo = (
+                'abcd',
+                'spanner'[4],
+            )
+            """,
+        )
+
+    def test_implicit_single_entry_tuple_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = 'abcd',
+            """,
+            """
+            foo = (
+                'abcd',
+            )
+            """,
+        )
+
+    def test_implicit_multi_entry_tuple_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = 'abcd', 'spanner'
+            """,
+            """
+            foo = (
+                'abcd',
+                'spanner',
+            )
+            """,
+        )
+
+    def test_implicit_tuple_as_multi_entry_subscript(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo['abcd', 'defg']
+            """,
+            """
+            foo[
+                'abcd',
+                'defg',
+            ]
+            """,
+        )
+
     def test_dict_comprehension(self) -> None:
         self.assertTransform(
             1,
