@@ -8,7 +8,7 @@ with open(os.path.join(my_dir, 'README.md')) as f:
 
 setup(
     name='tuck',
-    version='0.0.7',
+    version='0.0.8',
     url='https://github.com/PeterJCLaw/tuck',
     project_urls={
         'Issue tracker': 'https://github.com/PeterJCLaw/tuck/issues',
