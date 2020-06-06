@@ -1,5 +1,5 @@
 import ast
-from typing import List, Tuple, TypeVar
+from typing import List, Tuple, TypeVar, Optional
 
 from asttokens import ASTTokens  # type: ignore[import]
 
@@ -45,7 +45,11 @@ def optimise_wrapping_summary(
     summary which doesn't need to happen.
     """
 
-    def should_keep(position: Position, mutation: MutationType) -> bool:
+    def should_keep(
+        position: Position,
+        mutation: MutationType,
+        previous: Optional[Tuple[Position, MutationType]],
+    ) -> bool:
         if mutation == MutationType.TRAILING_COMMA:
             tok = asttokens.get_token(position.line, position.col)
             prev_token = asttokens.prev_token(tok)
@@ -60,9 +64,25 @@ def optimise_wrapping_summary(
             if prev_token.string == '\n':
                 return False
 
+        elif mutation == MutationType.INDENT and previous is not None:
+            prev_position, prev_mutation = previous
+
+            if prev_mutation in (
+                MutationType.WRAP,
+                MutationType.WRAP_INDENT,
+            ):
+                if prev_position == position:
+                    return False
+
         return True
 
-    return [x for x in wrapping_summary if should_keep(*x)]
+    wrapping_summary = [
+        current
+        for prev, current in zip([None, *wrapping_summary], wrapping_summary)
+        if should_keep(*current, prev)
+    ]
+
+    return wrapping_summary
 
 
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
@@ -87,9 +107,9 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
 
     wrapping_summary = get_wrapping_summary(asttokens, node)
 
-    wrapping_summary = optimise_wrapping_summary(asttokens, wrapping_summary)
-
     wrapping_summary = indent_interim_lines(asttokens, wrapping_summary)
+
+    wrapping_summary = optimise_wrapping_summary(asttokens, wrapping_summary)
 
     insertions = [
         (pos, ''.join(mutations[x] for x in mutation_types))
