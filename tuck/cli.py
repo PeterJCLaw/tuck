@@ -1,3 +1,4 @@
+import sys
 import json
 import difflib
 import argparse
@@ -36,7 +37,7 @@ def parse_position(position: str) -> Position:
     return Position(line, col)
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Wrap the python statement at a given position within a text document.",
     )
@@ -72,7 +73,7 @@ def parse_args() -> argparse.Namespace:
             "rather than printing the new content."
         ),
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def run(args: argparse.Namespace) -> None:
@@ -96,5 +97,5 @@ def run(args: argparse.Namespace) -> None:
         print(new_content)
 
 
-def main() -> None:
-    return run(parse_args())
+def main(argv: List[str] = sys.argv[1:]) -> None:
+    return run(parse_args(argv))
