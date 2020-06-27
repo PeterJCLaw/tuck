@@ -84,17 +84,20 @@ def run(args: argparse.Namespace) -> None:
 
     if args.diff:
         new_content = apply_insertions(content, insertions)
-        print("".join(difflib.unified_diff(
-            content.splitlines(keepends=True),
-            new_content.splitlines(keepends=True),
-            'original',
-            'formatted',
-        )))
+        print(
+            "".join(difflib.unified_diff(
+                content.splitlines(keepends=True),
+                new_content.splitlines(keepends=True),
+                'original',
+                'formatted',
+            )),
+            end='',
+        )
     elif args.edits:
         print_edits(insertions)
     else:
         new_content = apply_insertions(content, insertions)
-        print(new_content)
+        print(new_content, end='')
 
 
 def main(argv: List[str] = sys.argv[1:]) -> None:
