@@ -76,7 +76,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def run(args: argparse.Namespace) -> None:
-    content = args.file.read()
+    with args.file:
+        content = args.file.read()
 
     insertions = process(args.positions, content, args.file.name)
 
