@@ -6,6 +6,7 @@ import textwrap
 import unittest
 import contextlib
 from typing import List, Iterator
+from unittest import mock
 
 import tuck
 
@@ -147,6 +148,29 @@ class TestCli(unittest.TestCase):
                 'message': tuck.EditsOverlapError().message,
             }},
             data,
+        )
+
+        self.assertEqual('', output, "Should be no stdout messages on error")
+
+    def test_target_syntax_error_when_asked_for_edits(self) -> None:
+        with capture_stderr() as buffer:
+            output = self.run_tuck(
+                'invalid code',
+                ['--edits', '--positions', '1:1'],
+            )
+
+        data = json.loads(buffer.getvalue())
+        self.assertEqual(
+            {'error': {
+                'code': 'target_syntax_error',
+                'message': mock.ANY,
+            }},
+            data,
+        )
+
+        self.assertRegex(
+            data['error']['message'],
+            r'^invalid syntax \(tmp\w+\.py, line 1\)$',
         )
 
         self.assertEqual('', output, "Should be no stdout messages on error")

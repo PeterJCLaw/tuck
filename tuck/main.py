@@ -14,10 +14,16 @@ from .editing import (
     indent_interim_lines,
 )
 from .wrappers import WRAPPING_FUNTIONS
+from .exceptions import TuckError
 
 TAst = TypeVar('TAst', bound=ast.AST)
 
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
+
+
+class TargetSyntaxError(TuckError):
+    def __init__(self, inner: SyntaxError) -> None:
+        super().__init__('target_syntax_error', str(inner))
 
 
 def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary:
@@ -123,7 +129,12 @@ def process(
     content: str,
     filename: str,
 ) -> List[Insertion]:
-    asttokens = ASTTokens(content, parse=True, filename=filename)
+    try:
+        asttokens = ASTTokens(content, parse=True, filename=filename)
+    except SyntaxError as e:
+        # Catch syntax errors within the file we were asked to parse. We trust
+        # that the error is not within asttokens itself.
+        raise TargetSyntaxError(e) from e
 
     insertions = merge_insertions(
         determine_insertions(asttokens, position)
