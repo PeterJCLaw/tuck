@@ -7,9 +7,10 @@ from .ast import (
 )
 from .cli import main
 from .main import process
-from .editing import EditsOverlapError
+from .editing import apply_insertions, EditsOverlapError
 
 __all__ = (
+    'apply_insertions',
     'EditsOverlapError',
     'main',
     'NodeSearchError',

@@ -5,7 +5,7 @@ from typing import Dict, List, Union
 
 from .ast import Position
 from .main import process
-from .editing import Insertion
+from .editing import Insertion, apply_insertions
 
 LSP_Range = Dict[str, Dict[str, int]]
 LSP_TextEdit = Dict[str, Union[str, LSP_Range]]
@@ -78,9 +78,10 @@ def parse_args() -> argparse.Namespace:
 def run(args: argparse.Namespace) -> None:
     content = args.file.read()
 
-    new_content, insertions = process(args.positions, content, args.file.name)
+    insertions = process(args.positions, content, args.file.name)
 
     if args.diff:
+        new_content = apply_insertions(content, insertions)
         print("".join(difflib.unified_diff(
             content.splitlines(keepends=True),
             new_content.splitlines(keepends=True),
@@ -90,6 +91,7 @@ def run(args: argparse.Namespace) -> None:
     elif args.edits:
         print_edits(insertions)
     else:
+        new_content = apply_insertions(content, insertions)
         print(new_content)
 
 

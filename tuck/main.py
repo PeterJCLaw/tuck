@@ -10,7 +10,6 @@ from .editing import (
     INDENT_SIZE,
     MutationType,
     WrappingSummary,
-    apply_insertions,
     merge_insertions,
     indent_interim_lines,
 )
@@ -123,7 +122,7 @@ def process(
     positions: List[Position],
     content: str,
     filename: str,
-) -> Tuple[str, List[Insertion]]:
+) -> List[Insertion]:
     asttokens = ASTTokens(content, parse=True, filename=filename)
 
     insertions = merge_insertions(
@@ -131,6 +130,4 @@ def process(
         for position in positions
     )
 
-    new_content = apply_insertions(content, insertions)
-
-    return new_content, insertions
+    return insertions
