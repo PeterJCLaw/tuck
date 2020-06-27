@@ -27,8 +27,8 @@ def insertion_as_lsp_data(position: Position, new_text: str) -> LSP_TextEdit:
 
 
 def print_edits(insertions: List[Insertion]) -> None:
-    data = [insertion_as_lsp_data(*x) for x in insertions]
-    print(json.dumps(data))
+    edits = [insertion_as_lsp_data(*x) for x in insertions]
+    print(json.dumps({'edits': edits}))
 
 
 def parse_position(position: str) -> Position:
