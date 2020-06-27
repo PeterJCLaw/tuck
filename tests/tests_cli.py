@@ -18,6 +18,14 @@ def capture_stdout() -> Iterator[io.StringIO]:
     sys.stdout = original
 
 
+@contextlib.contextmanager
+def capture_stderr() -> Iterator[io.StringIO]:
+    buffer = io.StringIO()
+    original, sys.stderr = sys.stderr, buffer
+    yield buffer
+    sys.stderr = original
+
+
 class TestCli(unittest.TestCase):
     def run_tuck(self, content: str, argv: List[str]) -> str:
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w+t') as target:
@@ -94,3 +102,51 @@ class TestCli(unittest.TestCase):
             data,
             "Wrong output",
         )
+
+    def test_edits_overlap_error(self) -> None:
+        with capture_stderr() as buffer:
+            output = self.run_tuck('print(foo)', ['--positions', '1:1', '1:2'])
+
+        self.assertIn(
+            "Unable to perform wrapping as the resulting edits contain overlaps. ",
+            buffer.getvalue(),
+        )
+
+        self.assertEqual('', output, "Should be no stdout messages on error")
+
+    def test_no_supported_node_error(self) -> None:
+        with capture_stderr() as buffer:
+            output = self.run_tuck(
+                textwrap.dedent("""
+                    try:
+                        pass
+                    except:
+                        pass
+                """).lstrip(),
+                ['--positions', '1:1'],
+            )
+
+        self.assertIn(
+            "No supported nodes found (stack: Try)",
+            buffer.getvalue(),
+        )
+
+        self.assertEqual('', output, "Should be no stdout messages on error")
+
+    def test_handled_error_when_asked_for_edits(self) -> None:
+        with capture_stderr() as buffer:
+            output = self.run_tuck(
+                'print(foo)',
+                ['--edits', '--positions', '1:1', '1:2'],
+            )
+
+        data = json.loads(buffer.getvalue())
+        self.assertEqual(
+            {'error': {
+                'code': 'edits_overlap',
+                'message': tuck.EditsOverlapError().message,
+            }},
+            data,
+        )
+
+        self.assertEqual('', output, "Should be no stdout messages on error")

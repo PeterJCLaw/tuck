@@ -5,6 +5,7 @@ from typing import List, Tuple, Iterable, Sequence
 from asttokens import ASTTokens  # type: ignore[import]
 
 from .ast import Position
+from .exceptions import TuckError
 
 INDENT_SIZE = 4
 
@@ -22,8 +23,13 @@ WrappingSummary = List[Tuple[Position, MutationType]]
 Insertion = Tuple[Position, str]
 
 
-class EditsOverlapError(Exception):
-    pass
+class EditsOverlapError(TuckError):
+    def __init__(self) -> None:
+        super().__init__(
+            'edits_overlap',
+            "Unable to perform wrapping as the resulting edits contain overlaps. "
+            "Consider wrapping the positions one at a time instead. ",
+        )
 
 
 def indent_interim_lines(

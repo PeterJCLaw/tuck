@@ -7,6 +7,11 @@ from typing import Dict, List, Union
 from .ast import Position
 from .main import process
 from .editing import Insertion, apply_insertions
+from .exceptions import TuckError
+
+FAIL = '\033[91m'
+ENDC = '\033[0m'
+
 
 LSP_Range = Dict[str, Dict[str, int]]
 LSP_TextEdit = Dict[str, Union[str, LSP_Range]]
@@ -80,7 +85,18 @@ def run(args: argparse.Namespace) -> None:
     with args.file:
         content = args.file.read()
 
-    insertions = process(args.positions, content, args.file.name)
+    try:
+        insertions = process(args.positions, content, args.file.name)
+    except TuckError as e:
+        if args.edits:
+            # Assume the consumer is a tool looking for JSON
+            print(
+                json.dumps({'error': {'code': e.code, 'message': e.message}}),
+                file=sys.stderr,
+            )
+        else:
+            print(FAIL + e.message + ENDC, file=sys.stderr)
+        return
 
     if args.diff:
         new_content = apply_insertions(content, insertions)

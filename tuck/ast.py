@@ -6,6 +6,8 @@ from typing import List, Type, Tuple, TypeVar
 import asttokens.util  # type: ignore[import]
 from asttokens import ASTTokens
 
+from .exceptions import TuckError
+
 TAst = TypeVar('TAst', bound=ast.AST)
 
 
@@ -59,10 +61,8 @@ class Position:
         return 'Position(line={}, col={})'.format(self.line, self.col)
 
 
-class NodeSearchError(ValueError):
-    def __init__(self, code: str, message: str) -> None:
-        self.code = code
-        self.message = message
+class NodeSearchError(TuckError, ValueError):
+    """Base type for all node search errors."""
 
 
 class NoNodeFoundError(NodeSearchError):
