@@ -1,30 +1,13 @@
 import io
-import sys
 import json
 import tempfile
 import textwrap
 import unittest
 import contextlib
-from typing import List, Iterator
+from typing import List
 from unittest import mock
 
 import tuck
-
-
-@contextlib.contextmanager
-def capture_stdout() -> Iterator[io.StringIO]:
-    buffer = io.StringIO()
-    original, sys.stdout = sys.stdout, buffer
-    yield buffer
-    sys.stdout = original
-
-
-@contextlib.contextmanager
-def capture_stderr() -> Iterator[io.StringIO]:
-    buffer = io.StringIO()
-    original, sys.stderr = sys.stderr, buffer
-    yield buffer
-    sys.stderr = original
 
 
 class TestCli(unittest.TestCase):
@@ -33,7 +16,8 @@ class TestCli(unittest.TestCase):
             target.write(content)
             target.flush()
 
-            with capture_stdout() as buffer:
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
                 tuck.main([target.name, *argv])
 
             target.seek(0)
@@ -105,7 +89,8 @@ class TestCli(unittest.TestCase):
         )
 
     def test_edits_overlap_error(self) -> None:
-        with capture_stderr() as buffer:
+        buffer = io.StringIO()
+        with contextlib.redirect_stderr(buffer):
             output = self.run_tuck('print(foo)', ['--positions', '1:1', '1:2'])
 
         self.assertIn(
@@ -116,7 +101,8 @@ class TestCli(unittest.TestCase):
         self.assertEqual('', output, "Should be no stdout messages on error")
 
     def test_no_supported_node_error(self) -> None:
-        with capture_stderr() as buffer:
+        buffer = io.StringIO()
+        with contextlib.redirect_stderr(buffer):
             output = self.run_tuck(
                 textwrap.dedent("""
                     try:
@@ -135,7 +121,8 @@ class TestCli(unittest.TestCase):
         self.assertEqual('', output, "Should be no stdout messages on error")
 
     def test_handled_error_when_asked_for_edits(self) -> None:
-        with capture_stderr() as buffer:
+        buffer = io.StringIO()
+        with contextlib.redirect_stderr(buffer):
             output = self.run_tuck(
                 'print(foo)',
                 ['--edits', '--positions', '1:1', '1:2'],
@@ -153,7 +140,8 @@ class TestCli(unittest.TestCase):
         self.assertEqual('', output, "Should be no stdout messages on error")
 
     def test_target_syntax_error_when_asked_for_edits(self) -> None:
-        with capture_stderr() as buffer:
+        buffer = io.StringIO()
+        with contextlib.redirect_stderr(buffer):
             output = self.run_tuck(
                 'invalid code',
                 ['--edits', '--positions', '1:1'],
