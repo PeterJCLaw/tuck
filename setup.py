@@ -1,6 +1,6 @@
 import os.path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages  # type: ignore[import]
 
 my_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(my_dir, 'README.md')) as f:
