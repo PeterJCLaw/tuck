@@ -698,6 +698,23 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_boolean_expression_parenthesized_components(self) -> None:
+        self.assertTransform(
+            1,
+            16,
+            """
+            if (aa and bb) or (cc and dd):
+                pass
+            """,
+            """
+            if (
+                (aa and bb) or
+                (cc and dd)
+            ):
+                pass
+            """,
+        )
+
     def test_nested_wrapped_entity_in_unwrapped_entity(self) -> None:
         self.assertTransform(
             1,

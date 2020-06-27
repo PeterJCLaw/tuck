@@ -37,11 +37,26 @@ def generator_is_parenthesised(asttokens: ASTTokens, node: ast.GeneratorExp) -> 
     return False
 
 
+def bool_op_is_parenthesised(asttokens: ASTTokens, node: ast.BoolOp) -> bool:
+    prev_token = asttokens.prev_token(_first_token(node))
+    next_token = asttokens.next_token(_last_token(node))
+    if prev_token.string == '(' and next_token.string == ')':
+        return True
+
+    return False
+
+
 def node_start_position(asttokens: ASTTokens, node: ast.AST) -> Position:
     first_token = _first_token(node)
     if (
         isinstance(node, ast.GeneratorExp)
         and generator_is_parenthesised(asttokens, node)
+    ):
+        first_token = asttokens.prev_token(first_token)
+
+    elif (
+        isinstance(node, ast.BoolOp)
+        and bool_op_is_parenthesised(asttokens, node)
     ):
         first_token = asttokens.prev_token(first_token)
 
