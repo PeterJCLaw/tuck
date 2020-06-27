@@ -18,6 +18,42 @@ class TestDirtyInput(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_call_three_line_style(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            foo(
+                'abcd', 1234, spam='ham'
+            )
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                spam='ham',
+            )
+            """,
+        )
+
+    def test_function_call_three_line_style_with_trailing_comma(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            foo(
+                'abcd', 1234, spam='ham',
+            )
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                spam='ham',
+            )
+            """,
+        )
+
     def test_function_call_partly_wrapped_with_comment(self) -> None:
         # We accept the misplacement of the comment here, rather than causing
         # the misplacement of comments withing already "correctly" wrapped

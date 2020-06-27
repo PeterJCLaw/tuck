@@ -97,9 +97,24 @@ def wrap_generator_body(
     return [(x, MutationType.WRAP_INDENT) for x in start_positions]
 
 
-def append_trailing_comma(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
+def append_trailing_comma(
+    asttokens: ASTTokens,
+    summary: WrappingSummary,
+    node: ast.AST,
+) -> WrappingSummary:
+    # Use the end position of the last content token, rather than the start
+    # position of the closing token. This ensures that we put the comma in the
+    # right place in constructs like:
+    #
+    #   func(
+    #       'abcd', 'defg'
+    #   )
+    #
+    # Where we want to put the comma immediately after 'defg' rather than just
+    # before the closing paren.
+    last_body_token = asttokens.prev_token(_last_token(node))
     summary.append((
-        Position.from_node_end(node),
+        Position(*last_body_token.end),
         MutationType.TRAILING_COMMA,
     ))
     return summary
@@ -170,7 +185,7 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
         kwargs_stars = asttokens.prev_token(_first_token(kwargs))
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
 
-    append_trailing_comma(summary, node)
+    append_trailing_comma(asttokens, summary, node)
     append_wrap_end(summary, node)
     return summary
 
@@ -222,7 +237,7 @@ def wrap_dict(asttokens: ASTTokens, node: ast.Dict) -> WrappingSummary:
             positions.append(Position(*kwargs_stars.start))
 
     summary = [(x, MutationType.WRAP_INDENT) for x in positions]
-    append_trailing_comma(summary, node)
+    append_trailing_comma(asttokens, summary, node)
     append_wrap_end(summary, node)
     return summary
 
@@ -330,7 +345,7 @@ def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
 @node_wrapper(ast.List)
 def wrap_list(asttokens: ASTTokens, node: ast.List) -> WrappingSummary:
     summary = wrap_node_start_positions(asttokens, node.elts)
-    append_trailing_comma(summary, node)
+    append_trailing_comma(asttokens, summary, node)
     append_wrap_end(summary, node)
     return summary
 
@@ -389,7 +404,7 @@ def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
 
     else:
         if len(node.elts) > 1:
-            append_trailing_comma(summary, node)
+            append_trailing_comma(asttokens, summary, node)
 
         append_wrap_end(summary, node)
 
