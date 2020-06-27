@@ -1,6 +1,6 @@
 import enum
 import itertools
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, Sequence
 
 from asttokens import ASTTokens  # type: ignore[import]
 
@@ -100,7 +100,7 @@ def merge_insertions(grouped_insertions: Iterable[List[Insertion]]) -> List[Inse
     return flat_insertions
 
 
-def apply_insertions(content: str, insertions: List[Insertion]) -> str:
+def apply_insertions(content: str, insertions: Sequence[Insertion]) -> str:
     new_content = content.splitlines(keepends=True)
 
     for position, insertion in reversed(insertions):
