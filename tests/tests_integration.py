@@ -1,6 +1,3 @@
-import sys
-import unittest
-
 import tuck
 
 from .test_utils import BaseWrapperTestCase
@@ -404,7 +401,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression(self) -> None:
         self.assertTransform(
             1,
@@ -420,7 +416,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_as_only_argument(self) -> None:
         self.assertTransform(
             1,
@@ -436,7 +431,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_as_argument(self) -> None:
         self.assertTransform(
             1,
@@ -452,7 +446,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_with_conditonal(self) -> None:
         self.assertTransform(
             1,
@@ -469,7 +462,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_expression_with_conditonal_and_inner_loop(self) -> None:
         self.assertTransform(
             1,
@@ -898,7 +890,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_function_with_just_generator_arg(self) -> None:
         self.assertTransform(
             1,
@@ -913,7 +904,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_function_indirect_with_just_generator_arg(self) -> None:
         self.assertTransform(
             1,
@@ -928,7 +918,6 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_function_indirect_with_just_parenthesised_generator_arg(self) -> None:
         self.assertTransform(
             1,
