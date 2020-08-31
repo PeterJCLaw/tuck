@@ -1,6 +1,6 @@
 import ast
 import token
-from typing import List, Type, TypeVar, Callable, Iterable
+from typing import List, Type, Union, TypeVar, Callable, Iterable
 
 from asttokens import ASTTokens  # type: ignore[import]
 
@@ -249,8 +249,10 @@ def wrap_dict_comp(asttokens: ASTTokens, node: ast.DictComp) -> WrappingSummary:
     return summary
 
 
-@node_wrapper(ast.FunctionDef)
-def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSummary:
+def wrap_function_def(
+    asttokens: ASTTokens,
+    node: Union[ast.AsyncFunctionDef, ast.FunctionDef],
+) -> WrappingSummary:
     positions = node_start_positions(asttokens, node.args.args)
 
     if node.args.vararg:
@@ -286,6 +288,10 @@ def wrap_function_def(asttokens: ASTTokens, node: ast.FunctionDef) -> WrappingSu
     summary.append((args_end, MutationType.WRAP))
 
     return summary
+
+
+node_wrapper(ast.AsyncFunctionDef)(wrap_function_def)
+node_wrapper(ast.FunctionDef)(wrap_function_def)
 
 
 @node_wrapper(ast.GeneratorExp)

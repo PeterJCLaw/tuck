@@ -1182,6 +1182,23 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_async_function_definition(self) -> None:
+        self.assertTransform(
+            1,
+            14,
+            """
+            async def foo(tokens, position: Optional[int]) -> Optional[str]:
+                pass
+            """,
+            """
+            async def foo(
+                tokens,
+                position: Optional[int],
+            ) -> Optional[str]:
+                pass
+            """,
+        )
+
     def test_function_definition(self) -> None:
         self.assertTransform(
             1,
