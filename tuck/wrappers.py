@@ -207,20 +207,12 @@ def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
     if kwargs is not None:
         kwargs_stars = asttokens.prev_token(_first_token(kwargs))
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
-        summary.append((Position(*_last_token(kwargs).end), MutationType.TRAILING_COMMA))
-        summary.append((Position(*_last_token(kwargs).end), MutationType.WRAP))
 
-    else:
-        last_token_before_body = asttokens.next_token(_last_token(args[-1]))
+    close_paren = asttokens.find_token(_last_token(args[-1]), token.OP, ')')
+    args_end = Position(*close_paren.start)
 
-        summary.append((
-            Position(*last_token_before_body.start),
-            MutationType.TRAILING_COMMA,
-        ))
-        summary.append((
-            Position(*last_token_before_body.start),
-            MutationType.WRAP,
-        ))
+    summary.append((args_end, MutationType.TRAILING_COMMA))
+    summary.append((args_end, MutationType.WRAP))
 
     return summary
 

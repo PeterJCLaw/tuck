@@ -36,6 +36,24 @@ class TestDirtyInput(BaseWrapperTestCase):
             """,
         )
 
+    def test_class_def_with_internal_trailing_comma(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            class Foo(abcd, defg, spam='ham',):
+                pass
+            """,
+            """
+            class Foo(
+                abcd,
+                defg,
+                spam='ham',
+            ):
+                pass
+            """,
+        )
+
     def test_function_call_three_line_style(self) -> None:
         self.assertTransform(
             2,
