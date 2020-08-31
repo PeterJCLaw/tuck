@@ -749,7 +749,7 @@ class TestIntegration(BaseWrapperTestCase):
                 """,
             )
 
-    def test_wraps_outer_on_attribute_owner(self) -> None:
+    def test_wraps_outer_on_attribute_call_owner(self) -> None:
         self.assertTransform(
             1,
             7,
@@ -763,7 +763,7 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    def test_wraps_outer_on_attribute_value(self) -> None:
+    def test_wraps_outer_on_attribute_call_value(self) -> None:
         self.assertTransform(
             1,
             11,
