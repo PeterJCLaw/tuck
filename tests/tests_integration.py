@@ -504,6 +504,22 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_not_expression(self) -> None:
+        self.assertTransform(
+            1,
+            10,
+            """
+            x = a if not foo else b
+            """,
+            """
+            x = (
+                a
+                if not foo
+                else b
+            )
+            """,
+        )
+
     def test_if_expression_parenthesised_test(self) -> None:
         self.assertTransform(
             1,

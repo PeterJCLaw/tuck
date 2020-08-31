@@ -1,7 +1,7 @@
 import ast
 import token
 import functools
-from typing import List, Type, Tuple, TypeVar
+from typing import List, Type, Tuple, TypeVar, Optional
 
 import asttokens.util  # type: ignore[import]
 from asttokens import ASTTokens
@@ -134,6 +134,19 @@ class NodeFinder(ast.NodeVisitor):
 
         return reversed_stack[offset:]
 
+    def _check_not_in_body(self, prev_node: Optional[ast.AST], node: ast.AST) -> None:
+        if not prev_node:
+            return
+
+        body = getattr(node, 'body', None)
+        if not body or not isinstance(body, list):
+            return
+
+        if prev_node in body:
+            # Don't infer upwards from a function definition or if
+            # statement body to the container.
+            raise NoSuitableNodeFoundError(self.node_stack)
+
     @property
     def found_node(self) -> ast.AST:
         if not self.found:
@@ -146,11 +159,7 @@ class NodeFinder(ast.NodeVisitor):
             [None, *reversed_stack],
         ):
             if isinstance(node, self.target_node_types):
-                if prev_node and prev_node in getattr(node, 'body', ()):
-                    # Don't infer upwards from a function definition or if
-                    # statement body to the container.
-                    raise NoSuitableNodeFoundError(self.node_stack)
-
+                self._check_not_in_body(prev_node, node)
                 return node
 
         raise NoSupportedNodeFoundError(self.node_stack)
