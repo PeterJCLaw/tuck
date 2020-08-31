@@ -279,7 +279,7 @@ def wrap_function_def(
         for pos in positions
     ]
 
-    close_paren = asttokens.next_token(_last_token(node.args))
+    close_paren = asttokens.find_token(_last_token(node.args), token.OP, ')')
     args_end = Position(*close_paren.start)
 
     if not (node.args.kwonlyargs or node.args.kwarg):
