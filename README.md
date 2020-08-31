@@ -28,7 +28,7 @@ concern for vertical space.
 **Example**: Function definition
 
 ``` python
-def foo(bar: str, quox: int = 0) -> List[str]:
+def foo(bar: str, quox: int = 0) -> float:
     return 4.2
 ```
 
