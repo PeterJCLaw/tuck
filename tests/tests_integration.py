@@ -190,11 +190,10 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    @unittest.skipIf(sys.version_info >= (3, 8), "Token handling changes in 3.8+")
     def test_generator_in_list_literal(self) -> None:
         self.assertTransform(
             1,
-            8,
+            4,
             """
             ["bar", (x for x in 'an'), "foo"]
             """,
