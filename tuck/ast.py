@@ -113,9 +113,22 @@ class NodeFinder(ast.NodeVisitor):
 
         offset = 0
         for index, node in enumerate(reversed_stack):
-            if isinstance(node, ast.Attribute):
-                # We want to skip self and immediate parent
-                offset = index + 2
+            if (
+                # Skip upwards past attributes
+                isinstance(node, ast.Attribute)
+                or (
+                    # Skip upwards past calls when our position was on an
+                    # attribute to the left of the actual call. For example: in
+                    # `func(foo.bar.baz(4))` we want to wrap the call to `baz`
+                    # only when on `baz` itself or within its parentheses.
+                    # Otherwise we want to wrap `func`. This is somewhat
+                    # complicated by the Python AST including `foo.bar.baz` in
+                    # the `Call` node, hence this logic.
+                    isinstance(node, ast.Call)
+                    and node.func in reversed_stack[:index]
+                )
+            ):
+                offset = index + 1
             else:
                 break
 
