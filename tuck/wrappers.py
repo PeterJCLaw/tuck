@@ -182,7 +182,9 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
         summary = wrap_node_start_positions(asttokens, [*node.args, *named_args])
 
     if kwargs is not None:
-        kwargs_stars = asttokens.prev_token(_first_token(kwargs))
+        # find_token rather than prev_token since in Python 3.9 the first token
+        # of kwargs _is_ the ** token we're after.
+        kwargs_stars = asttokens.find_token(_first_token(kwargs), token.OP, '**', reverse=True)
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
 
     append_trailing_comma(asttokens, summary, node)
@@ -205,7 +207,9 @@ def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
     summary = wrap_node_start_positions(asttokens, args)
 
     if kwargs is not None:
-        kwargs_stars = asttokens.prev_token(_first_token(kwargs))
+        # find_token rather than prev_token since in Python 3.9 the first token
+        # of kwargs _is_ the ** token we're after.
+        kwargs_stars = asttokens.find_token(_first_token(kwargs), token.OP, '**', reverse=True)
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
 
     close_paren = asttokens.find_token(_last_token(args[-1]), token.OP, ')')
