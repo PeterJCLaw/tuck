@@ -1,10 +1,8 @@
-import os.path
+from pathlib import Path
 
 from setuptools import setup, find_packages  # type: ignore[import]
 
-my_dir = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(my_dir, 'README.md')) as f:
-    long_description = f.read()
+long_description = (Path(__file__).parent / 'README.md').read_text()
 
 setup(
     name='tuck',
