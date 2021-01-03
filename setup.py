@@ -6,7 +6,7 @@ long_description = (Path(__file__).parent / 'README.md').read_text()
 
 setup(
     name='tuck',
-    version='0.0.10',
+    version='0.0.11',
     url='https://github.com/PeterJCLaw/tuck',
     project_urls={
         'Issue tracker': 'https://github.com/PeterJCLaw/tuck/issues',
