@@ -11,3 +11,6 @@ flake8-tuple
 # Need 2.2 for fixes around typing comments
 # flake8 3.7.9 claims to be incompatible with pyflakes 2.2, however it actually works fine.
 pyflakes>=2.2
+# Ensure consistent version of isort while we still support Python 3.5
+# (isort >= 5 only supports Python 3.6+)
+isort<5
