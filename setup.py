@@ -20,6 +20,8 @@ setup(
     author="Peter Law",
     author_email="PeterJCLaw@gmail.com",
 
+    license='Apache 2.0',
+
     classifiers=(
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
