@@ -203,6 +203,35 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_single_entry_set_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = {'abcd'}
+            """,
+            """
+            foo = {
+                'abcd',
+            }
+            """,
+        )
+
+    def test_multi_entry_set_literal(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = {'abcd', 1234}
+            """,
+            """
+            foo = {
+                'abcd',
+                1234,
+            }
+            """,
+        )
+
     def test_single_entry_tuple_literal(self) -> None:
         self.assertTransform(
             1,
@@ -398,6 +427,54 @@ class TestIntegration(BaseWrapperTestCase):
                 if x % 3 == 0
                 for a in str(x)
             ]
+            """,
+        )
+
+    def test_sett_comprehension(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = {str(x) for x in range(42)}
+            """,
+            """
+            foo = {
+                str(x)
+                for x in range(42)
+            }
+            """,
+        )
+
+    def test_sett_comprehension_with_conditional(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = {str(x) for x in range(42) if x % 3 == 0}
+            """,
+            """
+            foo = {
+                str(x)
+                for x in range(42)
+                if x % 3 == 0
+            }
+            """,
+        )
+
+    def test_sett_comprehension_with_conditional_and_inner_loop(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = {a for x in range(42) if x % 3 == 0 for a in str(x)}
+            """,
+            """
+            foo = {
+                a
+                for x in range(42)
+                if x % 3 == 0
+                for a in str(x)
+            }
             """,
         )
 

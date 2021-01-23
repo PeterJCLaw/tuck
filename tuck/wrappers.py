@@ -359,6 +359,21 @@ def wrap_list_comp(asttokens: ASTTokens, node: ast.ListComp) -> WrappingSummary:
     return summary
 
 
+@node_wrapper(ast.Set)
+def wrap_set(asttokens: ASTTokens, node: ast.Set) -> WrappingSummary:
+    summary = wrap_node_start_positions(asttokens, node.elts)
+    append_trailing_comma(asttokens, summary, node)
+    append_wrap_end(summary, node)
+    return summary
+
+
+@node_wrapper(ast.SetComp)
+def wrap_set_comp(asttokens: ASTTokens, node: ast.SetComp) -> WrappingSummary:
+    summary = wrap_generator_body(asttokens, node.elt, node.generators)
+    append_wrap_end(summary, node)
+    return summary
+
+
 @node_wrapper(ast.Tuple)
 def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
     first_token = _first_token(node)
