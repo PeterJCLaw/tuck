@@ -1382,6 +1382,22 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_definition_arg_default_tuple(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(first=()):
+                pass
+            """,
+            """
+            def foo(
+                first=(),
+            ):
+                pass
+            """,
+        )
+
     def test_empty_class_definition(self) -> None:
         self.assertTransform(
             1,

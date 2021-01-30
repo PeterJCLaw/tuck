@@ -275,7 +275,11 @@ def wrap_function_def(
         for pos in positions
     ]
 
-    close_paren = asttokens.find_token(_last_token(node.args), token.OP, ')')
+    # Always move onwards by at least one token; this guards against the last
+    # token of the args themselves being a closing paren (for example as part of
+    # an default value).
+    next_token = asttokens.next_token(_last_token(node.args))
+    close_paren = asttokens.find_token(next_token, token.OP, ')')
     args_end = Position(*close_paren.start)
 
     if not (node.args.kwonlyargs or node.args.kwarg):
