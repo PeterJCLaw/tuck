@@ -430,7 +430,7 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    def test_sett_comprehension(self) -> None:
+    def test_set_comprehension(self) -> None:
         self.assertTransform(
             1,
             15,
@@ -445,7 +445,7 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    def test_sett_comprehension_with_conditional(self) -> None:
+    def test_set_comprehension_with_conditional(self) -> None:
         self.assertTransform(
             1,
             15,
@@ -461,7 +461,7 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    def test_sett_comprehension_with_conditional_and_inner_loop(self) -> None:
+    def test_set_comprehension_with_conditional_and_inner_loop(self) -> None:
         self.assertTransform(
             1,
             15,
