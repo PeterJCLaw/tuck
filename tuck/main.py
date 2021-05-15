@@ -65,6 +65,11 @@ def remove_redunant_wrapping_operations(
                 return False
 
         elif mutation in (MutationType.WRAP, MutationType.WRAP_INDENT):
+            if previous is not None:
+                previous_pos, previous_op = previous
+                if previous_pos == position:
+                    return True
+
             tok = asttokens.get_token(position.line, position.col)
             prev_token = asttokens.prev_token(tok, include_extra=True)
 

@@ -620,6 +620,26 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_expression_within_list_literal(self) -> None:
+        self.assertTransform(
+            2,
+            9,
+            """
+            bees = [
+                bee if bee is not None else None,
+            ]
+            """,
+            """
+            bees = [
+                (
+                    bee
+                    if bee is not None
+                    else None
+                ),
+            ]
+            """,
+        )
+
     def test_if_statement(self) -> None:
         self.assertTransform(
             1,
