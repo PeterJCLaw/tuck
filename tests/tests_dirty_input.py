@@ -54,6 +54,24 @@ class TestDirtyInput(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_call_with_trailing_comma_and_comment(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo('abcd', 1234,
+                24 * 60 * 60, # 1 day
+            )
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                24 * 60 * 60, # 1 day
+            )
+            """,
+        )
+
     def test_function_call_three_line_style(self) -> None:
         self.assertTransform(
             2,

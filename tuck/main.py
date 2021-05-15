@@ -57,8 +57,10 @@ def remove_redunant_wrapping_operations(
     ) -> bool:
         if mutation == MutationType.TRAILING_COMMA:
             tok = asttokens.get_token(position.line, position.col)
-            prev_token = asttokens.prev_token(tok)
+            if tok.string == ',':
+                return False
 
+            prev_token = asttokens.prev_token(tok)
             if prev_token.string == ',':
                 return False
 
