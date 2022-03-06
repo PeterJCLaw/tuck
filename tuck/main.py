@@ -37,7 +37,7 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
     raise AssertionError("Unsupported node type {}".format(node))
 
 
-def remove_redunant_wrapping_operations(
+def remove_redundant_wrapping_operations(
     asttokens: ASTTokens,
     wrapping_summary: WrappingSummary,
 ) -> WrappingSummary:
@@ -121,7 +121,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
 
     wrapping_summary = indent_interim_lines(asttokens, wrapping_summary)
 
-    wrapping_summary = remove_redunant_wrapping_operations(asttokens, wrapping_summary)
+    wrapping_summary = remove_redundant_wrapping_operations(asttokens, wrapping_summary)
 
     insertions = [
         (pos, ''.join(mutations[x] for x in mutation_types))
