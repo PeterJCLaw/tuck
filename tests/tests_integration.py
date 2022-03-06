@@ -640,6 +640,26 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_expression_within_call(self) -> None:
+        self.assertTransform(
+            2,
+            9,
+            """
+            func(
+                bee if bee is not None else None,
+            )
+            """,
+            """
+            func(
+                (
+                    bee
+                    if bee is not None
+                    else None
+                ),
+            )
+            """,
+        )
+
     def test_if_statement(self) -> None:
         self.assertTransform(
             1,

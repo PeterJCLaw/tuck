@@ -37,7 +37,10 @@ def generator_is_parenthesised(asttokens: ASTTokens, node: ast.GeneratorExp) -> 
     return False
 
 
-def bool_op_is_parenthesised(asttokens: ASTTokens, node: ast.BoolOp) -> bool:
+def expression_is_parenthesised(
+    asttokens: ASTTokens,
+    node: Union[ast.BoolOp, ast.IfExp],
+) -> bool:
     prev_token = asttokens.prev_token(_first_token(node))
     next_token = asttokens.next_token(_last_token(node))
     if prev_token.string == '(' and next_token.string == ')':
@@ -56,7 +59,7 @@ def node_start_position(asttokens: ASTTokens, node: ast.AST) -> Position:
 
     elif (
         isinstance(node, ast.BoolOp)
-        and bool_op_is_parenthesised(asttokens, node)
+        and expression_is_parenthesised(asttokens, node)
     ):
         first_token = asttokens.prev_token(first_token)
 
@@ -335,7 +338,7 @@ def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
     )]
 
     # Work out if we have parentheses already, if not we need to add some
-    if asttokens.prev_token(_first_token(node)).string != '(':
+    if not expression_is_parenthesised(asttokens, node):
         summary.insert(0, (
             Position.from_node_start(node),
             MutationType.OPEN_PAREN,
