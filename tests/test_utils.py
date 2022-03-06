@@ -13,7 +13,7 @@ class BaseWrapperTestCase(unittest.TestCase):
         content: str,
         expected_output: str,
         *,
-        message: str = "Bad transformations"
+        message: str = "Bad transformations",
     ) -> None:
         # Normalise from triple quoted strings
         content = textwrap.dedent(content[1:])
