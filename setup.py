@@ -22,7 +22,7 @@ setup(
 
     license='Apache 2.0',
 
-    classifiers=(
+    classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
         'Natural Language :: English',
@@ -34,7 +34,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Topic :: Software Development',
-    ),
+    ],
 
     install_requires=(
         'asttokens',
