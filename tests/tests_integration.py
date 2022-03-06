@@ -508,6 +508,23 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_generator_expression_as_only_argument_three_line(self) -> None:
+        self.assertTransform(
+            2,
+            15,
+            """
+            foo(
+                str(x) for x in range(42)
+            )
+            """,
+            """
+            foo(
+                str(x)
+                for x in range(42)
+            )
+            """,
+        )
+
     def test_generator_expression_as_argument(self) -> None:
         self.assertTransform(
             1,

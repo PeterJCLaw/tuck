@@ -40,6 +40,7 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
 def remove_redundant_wrapping_operations(
     asttokens: ASTTokens,
     wrapping_summary: WrappingSummary,
+    node_start: Position,
 ) -> WrappingSummary:
     """
     The initial wrapping summary defines where a correctly tucked statement
@@ -49,6 +50,9 @@ def remove_redundant_wrapping_operations(
     This util inspects the actual token stream and removes anything from our
     summary which doesn't need to happen.
     """
+
+    if not wrapping_summary:
+        return wrapping_summary
 
     def should_keep(
         position: Position,
@@ -88,6 +92,26 @@ def remove_redundant_wrapping_operations(
 
         return True
 
+    # If the first operation is to wrap & indent the very start of the node and
+    # we're not actually going to do that, then we need to adjust the rest of
+    # the operations to account for the lack of indent.
+    first = wrapping_summary[0]
+    if (
+        first == (node_start, MutationType.WRAP_INDENT)
+        and not should_keep(*first, previous=None)
+    ):
+        wrapping_summary = [
+            (
+                pos,
+                MutationType.WRAP if op == MutationType.WRAP_INDENT else op,
+            )
+            for pos, op in wrapping_summary
+            # TODO: work out if this conditional is necessary and add a test
+            # case. It *feels* like it should be needed, but the motivating case
+            # didn't actually need this.
+            if op != MutationType.INDENT
+        ]
+
     wrapping_summary = [
         current
         for prev, current in zip([None, *wrapping_summary], wrapping_summary)
@@ -121,7 +145,11 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
 
     wrapping_summary = indent_interim_lines(asttokens, wrapping_summary)
 
-    wrapping_summary = remove_redundant_wrapping_operations(asttokens, wrapping_summary)
+    wrapping_summary = remove_redundant_wrapping_operations(
+        asttokens,
+        wrapping_summary,
+        Position.from_node_start(node),
+    )
 
     insertions = [
         (pos, ''.join(mutations[x] for x in mutation_types))
