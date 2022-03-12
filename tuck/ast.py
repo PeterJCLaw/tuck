@@ -53,7 +53,7 @@ class Position:
 
     def __lt__(self, other: 'Position') -> bool:
         if not isinstance(other, Position):
-            return NotImplemented  # type: ignore  # unreachable
+            return NotImplemented  # type: ignore[unreachable]
 
         if self.line < other.line:
             return True
@@ -206,4 +206,4 @@ def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
         next_tok = tok
         tok = asttokens.prev_token(tok)
 
-    return next_tok.start[1]  # type: ignore
+    return next_tok.start[1]  # type: ignore[no-any-return]
