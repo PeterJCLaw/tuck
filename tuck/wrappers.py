@@ -135,11 +135,6 @@ def append_wrap_end(summary: WrappingSummary, node: ast.AST) -> WrappingSummary:
 def wrap_bool_op(asttokens: ASTTokens, node: ast.BoolOp) -> WrappingSummary:
     summary = wrap_node_start_positions(asttokens, node.values)
 
-    summary.append((
-        Position(*_last_token(node).end),
-        MutationType.WRAP,
-    ))
-
     # Work out if we have parentheses already, if not we need to add some
     if asttokens.prev_token(_first_token(node)).string != '(':
         summary.insert(0, (
@@ -148,7 +143,17 @@ def wrap_bool_op(asttokens: ASTTokens, node: ast.BoolOp) -> WrappingSummary:
         ))
         summary.append((
             Position(*_last_token(node).end),
+            MutationType.WRAP,
+        ))
+        summary.append((
+            Position(*_last_token(node).end),
             MutationType.CLOSE_PAREN,
+        ))
+    else:
+        # Otherwise we just need to wrap what's already present
+        summary.append((
+            Position(*asttokens.next_token(_last_token(node)).start),
+            MutationType.WRAP,
         ))
 
     return summary

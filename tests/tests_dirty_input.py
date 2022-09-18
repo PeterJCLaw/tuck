@@ -279,3 +279,37 @@ class TestDirtyInput(BaseWrapperTestCase):
             )
             """,
         )
+
+    def test_three_line_boolean_expression(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            val = (
+                foo and bar
+            )
+            """,
+            """
+            val = (
+                foo and
+                bar
+            )
+            """,
+        )
+
+    def test_commented_three_line_boolean_expression(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            val = (
+                foo and bar  # bees
+            )
+            """,
+            """
+            val = (
+                foo and
+                bar  # bees
+            )
+            """,
+        )
