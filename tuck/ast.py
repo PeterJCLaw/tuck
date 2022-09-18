@@ -15,14 +15,14 @@ def _first_token(node: ast.AST) -> asttokens.util.Token:
     if isinstance(node, ast.GeneratorExp):
         return _first_token(node.elt)
 
-    return node.first_token  # type: ignore[attr-defined]
+    return node.first_token  # type: ignore[attr-defined,no-any-return]
 
 
 def _last_token(node: ast.AST) -> asttokens.util.Token:
     if isinstance(node, ast.GeneratorExp):
         return _last_token(node.generators[-1])
 
-    return node.last_token  # type: ignore[attr-defined]
+    return node.last_token  # type: ignore[attr-defined,no-any-return]
 
 
 @functools.total_ordering
