@@ -72,6 +72,86 @@ class TestDirtyInput(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_def_three_line_style(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(
+                abcd, defg, spam='ham'
+            ):
+                pass
+            """,
+            """
+            def foo(
+                abcd,
+                defg,
+                spam='ham',
+            ):
+                pass
+            """,
+        )
+
+    def test_function_def_three_line_style_with_comment(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            def foo(
+                abcd, defg, spam='ham'  # foo
+            ):
+                pass
+            """,
+            """
+            def foo(
+                abcd,
+                defg,
+                spam='ham',  # foo
+            ):
+                pass
+            """,
+        )
+
+    def test_class_def_three_line_style(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            class Foo(
+                abcd, defg, spam='ham'
+            ):
+                pass
+            """,
+            """
+            class Foo(
+                abcd,
+                defg,
+                spam='ham',
+            ):
+                pass
+            """,
+        )
+
+    def test_class_def_three_line_style_with_comment(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            class Foo(
+                abcd, defg, spam='ham'  # foo
+            ):
+                pass
+            """,
+            """
+            class Foo(
+                abcd,
+                defg,
+                spam='ham',  # foo
+            ):
+                pass
+            """,
+        )
+
     def test_function_call_three_line_style(self) -> None:
         self.assertTransform(
             2,

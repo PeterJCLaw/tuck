@@ -216,10 +216,10 @@ def wrap_class_def(asttokens: ASTTokens, node: ast.ClassDef) -> WrappingSummary:
         summary.append((Position(*kwargs_stars.start), MutationType.WRAP_INDENT))
 
     close_paren = asttokens.find_token(_last_token(args[-1]), token.OP, ')')
-    args_end = Position(*close_paren.start)
+    args_end = Position(*asttokens.prev_token(close_paren).end)
 
     summary.append((args_end, MutationType.TRAILING_COMMA))
-    summary.append((args_end, MutationType.WRAP))
+    summary.append((Position(*close_paren.start), MutationType.WRAP))
 
     return summary
 
@@ -283,12 +283,12 @@ def wrap_function_def(
     # an default value).
     next_token = asttokens.next_token(_last_token(node.args))
     close_paren = asttokens.find_token(next_token, token.OP, ')')
-    args_end = Position(*close_paren.start)
 
     if not (node.args.kwonlyargs or node.args.kwarg):
+        args_end = Position(*asttokens.prev_token(close_paren).end)
         summary.append((args_end, MutationType.TRAILING_COMMA))
 
-    summary.append((args_end, MutationType.WRAP))
+    summary.append((Position(*close_paren.start), MutationType.WRAP))
 
     return summary
 
