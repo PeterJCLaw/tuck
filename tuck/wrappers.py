@@ -1,8 +1,10 @@
 import ast
 import token
-from typing import List, Type, Union, TypeVar, Callable, Iterable
+import keyword
+from typing import List, Type, Tuple, Union, TypeVar, Callable, Iterable
 
 from asttokens import ASTTokens
+from asttokens.util import Token
 
 from .ast import Position, _last_token, _first_token
 from .editing import MutationType, WrappingSummary
@@ -25,14 +27,45 @@ def node_wrapper(ast_type: Type[TAst]) -> Callable[
     return wrapper
 
 
-def generator_is_parenthesised(asttokens: ASTTokens, node: ast.GeneratorExp) -> bool:
-    prev_token = asttokens.prev_token(_first_token(node))
-    next_token = asttokens.next_token(_last_token(node))
-    if prev_token.string == '(' and next_token.string == ')':
-        # These parens might be wrapping us
+def get_node_bounds(asttokens: ASTTokens, node: ast.expr) -> Tuple[Token, Token]:
+    """
+    Determine the outer bounds of the node, consuming any surrounding parentheses.
+    """
+
+    first_token = _first_token(node)
+    last_token = _last_token(node)
+
+    # Attempt to consume any wrapping parens
+    while True:
+        prev_token = asttokens.prev_token(first_token)
+        next_token = asttokens.next_token(last_token)
+
+        if prev_token.string != '(' or next_token.string != ')':
+            # No more parens, our first/last tokens are already correct
+            break
+
         prev_prev_token = asttokens.prev_token(prev_token)
-        if prev_prev_token.string in ('(', ','):
-            return True
+        if (
+            prev_prev_token.string in ',('
+            or (
+                prev_prev_token.type == token.NAME
+                and keyword.iskeyword(prev_prev_token.string)
+            )
+        ):
+            # The parens we found are ours to consume
+            first_token, last_token = prev_token, next_token
+
+        else:
+            # The parens we found belong to a call or similar
+            break
+
+    return first_token, last_token
+
+
+def generator_is_parenthesised(asttokens: ASTTokens, node: ast.GeneratorExp) -> bool:
+    first_token, last_token = get_node_bounds(asttokens, node)
+    if first_token.string == '(' and last_token.string == ')':
+        return True
 
     return False
 
@@ -50,18 +83,10 @@ def expression_is_parenthesised(
 
 
 def node_start_position(asttokens: ASTTokens, node: ast.AST) -> Position:
-    first_token = _first_token(node)
-    if (
-        isinstance(node, ast.GeneratorExp)
-        and generator_is_parenthesised(asttokens, node)
-    ):
-        first_token = asttokens.prev_token(first_token)
-
-    elif (
-        isinstance(node, ast.BoolOp)
-        and expression_is_parenthesised(asttokens, node)
-    ):
-        first_token = asttokens.prev_token(first_token)
+    if isinstance(node, ast.expr):
+        first_token, _ = get_node_bounds(asttokens, node)
+    else:
+        first_token = _first_token(node)
 
     return Position(*first_token.start)
 

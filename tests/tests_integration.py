@@ -1008,6 +1008,66 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_function_with_parenthesised_arg(self) -> None:
+        self.assertTransform(
+            1,
+            3,
+            """
+            foo(('sender_domain'))
+            """,
+            """
+            foo(
+                ('sender_domain'),
+            )
+            """,
+        )
+
+    def test_function_with_boolean_op_arg(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            foo(12, a and b, 13)
+            """,
+            """
+            foo(
+                12,
+                a and b,
+                13,
+            )
+            """,
+        )
+
+    def test_function_with_parenthesised_boolean_op_arg(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            foo(12, (a and b), 13)
+            """,
+            """
+            foo(
+                12,
+                (a and b),
+                13,
+            )
+            """,
+        )
+
+    def test_function_with_just_boolean_op_arg(self) -> None:
+        self.assertTransform(
+            1,
+            2,
+            """
+            foo(a and b)
+            """,
+            """
+            foo(
+                a and b,
+            )
+            """,
+        )
+
     def test_function_with_generator_arg(self) -> None:
         self.assertTransform(
             1,
