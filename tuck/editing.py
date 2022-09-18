@@ -2,7 +2,7 @@ import enum
 import itertools
 from typing import List, Tuple, Iterable, Sequence
 
-from asttokens import ASTTokens  # type: ignore[import]
+from asttokens import ASTTokens
 
 from .ast import Position
 from .exceptions import TuckError

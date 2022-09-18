@@ -3,7 +3,7 @@ import token
 import functools
 from typing import List, Type, Tuple, TypeVar, Optional
 
-import asttokens.util  # type: ignore[import]
+import asttokens.util
 from asttokens import ASTTokens
 
 from .exceptions import TuckError

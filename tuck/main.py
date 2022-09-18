@@ -1,7 +1,7 @@
 import ast
 from typing import List, Tuple, TypeVar, Optional
 
-from asttokens import ASTTokens  # type: ignore[import]
+from asttokens import ASTTokens
 
 from .ast import Position, NodeFinder, get_current_indent
 from .editing import (
@@ -123,6 +123,7 @@ def remove_redundant_wrapping_operations(
 
 def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
     finder = NodeFinder(position, WRAPPABLE_NODE_TYPES)
+    assert asttokens.tree is not None
     finder.visit(asttokens.tree)
 
     node = finder.found_node

@@ -2,7 +2,7 @@ import ast
 import token
 from typing import List, Type, Union, TypeVar, Callable, Iterable
 
-from asttokens import ASTTokens  # type: ignore[import]
+from asttokens import ASTTokens
 
 from .ast import Position, _last_token, _first_token
 from .editing import MutationType, WrappingSummary
