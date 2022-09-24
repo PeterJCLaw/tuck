@@ -946,6 +946,20 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_wraps_inner_on_method_name(self) -> None:
+        self.assertTransform(
+            1,
+            15,
+            """
+            func(foo.bar.baz(arg=value))
+            """,
+            """
+            func(foo.bar.baz(
+                arg=value,
+            ))
+            """,
+        )
+
     def test_wraps_on_method_name(self) -> None:
         self.assertTransform(
             1,
@@ -964,6 +978,22 @@ class TestIntegration(BaseWrapperTestCase):
         self.assertTransform(
             1,
             8,
+            """
+            foo('abcd', 1234, spam='ham')
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                spam='ham',
+            )
+            """,
+        )
+
+    def test_function_call_on_name(self) -> None:
+        self.assertTransform(
+            1,
+            2,
             """
             foo('abcd', 1234, spam='ham')
             """,
