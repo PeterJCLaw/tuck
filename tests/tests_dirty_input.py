@@ -2,6 +2,66 @@ from .test_utils import BaseWrapperTestCase
 
 
 class TestDirtyInput(BaseWrapperTestCase):
+    def test_class_def_already_tucked(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            class Foo(
+                abcd,
+                spam='ham',
+            ):
+                pass
+            """,
+            """
+            class Foo(
+                abcd,
+                spam='ham',
+            ):
+                pass
+            """,
+        )
+
+    def test_function_call_already_tucked(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            foo(
+                'abcd',
+                1234,
+                spam='ham',
+            )
+            """,
+            """
+            foo(
+                'abcd',
+                1234,
+                spam='ham',
+            )
+            """,
+        )
+
+    def test_function_def_already_tucked(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            def foo(
+                abcd,
+                spam='ham',
+            ):
+                pass
+            """,
+            """
+            def foo(
+                abcd,
+                spam='ham',
+            ):
+                pass
+            """,
+        )
+
     def test_function_call_with_internal_trailing_comma(self) -> None:
         self.assertTransform(
             1,
