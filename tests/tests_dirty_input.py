@@ -190,7 +190,7 @@ class TestDirtyInput(BaseWrapperTestCase):
 
     def test_function_call_partly_wrapped_with_comment(self) -> None:
         # We accept the misplacement of the comment here, rather than causing
-        # the misplacement of comments withing already "correctly" wrapped
+        # the misplacement of comments within already "correctly" wrapped
         # nested blocks.
         self.assertTransform(
             2,
