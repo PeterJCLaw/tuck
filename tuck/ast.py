@@ -99,6 +99,10 @@ class NoSupportedNodeFoundError(NodeSearchError):
 
 
 class NodeFinder(ast.NodeVisitor):
+    """
+    Visitor which finds the AST node that should be wrapped for a given position.
+    """
+
     def __init__(self, position: Position, node_types: Tuple[Type[ast.AST], ...]) -> None:
         self.target_position = position
         self.target_node_types = node_types
