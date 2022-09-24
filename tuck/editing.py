@@ -1,10 +1,10 @@
 import enum
 import itertools
-from typing import List, Tuple, Iterable, Sequence
+from typing import Set, List, Tuple, Iterable, Sequence
 
 from asttokens import ASTTokens
 
-from .ast import Position
+from .ast import Position, AffectedNodeFinder
 from .exceptions import TuckError
 
 INDENT_SIZE = 4
@@ -47,11 +47,33 @@ def indent_interim_lines(
         # Everything was on one line to start with, nothing for us to do.
         return wrapping_summary
 
-    # Add indentations for things which were already wrapped somewhat. We don't
-    # want to touch the first line (since that's the line we're splitting up),
-    # but we do want to indent anything which was already on the last line we're
-    # touching.
-    for line in range(first_line + 1, last_line + 1):
+    # Add indentations for things which were already wrapped somewhat. We're
+    # only interested in lines which appear inside nodes that are themselves
+    # going to be impacted by the wrapping and assume that outside of those
+    # cases things are already in the right place. This assumption may turn out
+    # to be invalid, in which case a new approach may be needed here.
+
+    lines_to_indent: Set[int] = set()
+
+    for position, mutation_type in wrapping_summary:
+        if mutation_type not in (
+            MutationType.INDENT,
+            MutationType.WRAP_INDENT,
+        ):
+            continue
+
+        finder = AffectedNodeFinder(position)
+        assert asttokens.tree is not None
+        finder.visit(asttokens.tree)
+
+        if finder.found_node is not None:
+            node = finder.found_node
+            start, end = Position.from_node_start(node), Position.from_node_end(node)
+            # Don't consider the first line (we know there's already an edit for
+            # that) and do consider the last line.
+            lines_to_indent.update(range(start.line + 1, end.line + 1))
+
+    for line in lines_to_indent:
         tok = asttokens.get_token(line, 0)
         if tok.start[0] != line:
             # We've got the last token on the previous line, but we want the

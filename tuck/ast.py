@@ -232,3 +232,50 @@ def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
         tok = asttokens.prev_token(tok)
 
     return next_tok.start[1]  # type: ignore[no-any-return]
+
+
+class AffectedNodeFinder(ast.NodeVisitor):
+    """
+    Visitor which finds the first AST node that would be affected by wrapping at
+    the given position.
+
+    Nodes which are all on the same line will never be considered matches.
+    """
+
+    def __init__(self, position: Position) -> None:
+        self.target_position = position
+
+        self._found: bool = False
+        self.found_node: Optional[ast.AST] = None
+
+    def generic_visit(self, node: ast.AST) -> None:
+        if self._found:
+            return
+
+        if not hasattr(node, 'lineno'):
+            super().generic_visit(node)
+            return
+
+        start = Position.from_node_start(node)
+        end = Position.from_node_end(node)
+
+        if end < self.target_position:
+            # we're clear before the target
+            return
+
+        if start.line > self.target_position.line:
+            # we're clear after the target
+            return
+
+        if start.line == end.line:
+            # not interested in single-line nodes
+            return
+
+        if (
+            start.line == self.target_position.line
+            and start.col >= self.target_position.col
+        ):
+            self.found_node = node
+            return
+
+        super().generic_visit(node)

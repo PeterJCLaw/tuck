@@ -266,7 +266,7 @@ class TestDirtyInput(BaseWrapperTestCase):
             foo(
                 'abcd',
                 1234,
-                    # comment
+                # comment
                 spam='ham',
             )
             """,
@@ -371,5 +371,28 @@ class TestDirtyInput(BaseWrapperTestCase):
                 foo and
                 bar  # bees
             )
+            """,
+        )
+
+    def test_list_comprehension_partially_wrapped(self) -> None:
+        self.assertTransform(
+            1,
+            9,
+            """
+            items = [
+                SomeFactory(
+                    attr=5,
+                    spam=12,
+                ) for _ in range(5)
+            ]
+            """,
+            """
+            items = [
+                SomeFactory(
+                    attr=5,
+                    spam=12,
+                )
+                for _ in range(5)
+            ]
             """,
         )
