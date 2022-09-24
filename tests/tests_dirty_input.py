@@ -262,7 +262,7 @@ class TestDirtyInput(BaseWrapperTestCase):
             """,
         )
 
-    def test_function_call_partly_wrapped_complex(self) -> None:
+    def test_function_call_partly_wrapped_pep8_style(self) -> None:
         self.assertTransform(
             2,
             8,
