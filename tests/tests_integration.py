@@ -589,6 +589,22 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_expression_on_else_value(self) -> None:
+        self.assertTransform(
+            1,
+            28,
+            """
+            x = a if foo and bar else bbbb
+            """,
+            """
+            x = (
+                a
+                if foo and bar
+                else bbbb
+            )
+            """,
+        )
+
     def test_if_not_expression(self) -> None:
         self.assertTransform(
             1,
@@ -1129,6 +1145,9 @@ class TestIntegration(BaseWrapperTestCase):
         )
 
     def test_function_indirect_with_just_generator_arg(self) -> None:
+        # Note: this test is validating both that the given position (just
+        # before the closing paren of the call) wraps the function and that the
+        # wrap works ok.
         self.assertTransform(
             1,
             25,
@@ -1168,6 +1187,20 @@ class TestIntegration(BaseWrapperTestCase):
                 'abcd',
                 foo=42,
             ))
+            """,
+        )
+
+    def test_outer_when_between_closing_parens(self) -> None:
+        self.assertTransform(
+            1,
+            28,
+            """
+            foo(bar=quox('abcd', foo=42))
+            """,
+            """
+            foo(
+                bar=quox('abcd', foo=42),
+            )
             """,
         )
 

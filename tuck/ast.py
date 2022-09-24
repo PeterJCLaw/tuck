@@ -170,6 +170,27 @@ class NodeFinder(ast.NodeVisitor):
 
         raise NoSupportedNodeFoundError(self.node_stack)
 
+    def _get_end_of_node(self, node: ast.AST) -> Position:
+        # We want to prefer the node that the position is clearly "within". This
+        # means slightly different things for different cases:
+        #  - nodes that end with some for of bracket don't really want to
+        #    consider the bracket as in practise text editors position their
+        #    visible cursor to the left of the character position they're at
+        #  - generators sort-of end with a bracket, but don't own the bracket
+        #  - due to how Python's AST is structured around attributes and calls,
+        #    we don't want to consider the right hand "name" portion of an
+        #    attribute as part of the attribute; this is so we're forced to
+        #    consider only the parent node rather than a true reflection of the
+        #    positions
+        last_token = _last_token(node)
+        if (
+            last_token.type == token.OP and last_token.string in ')}]'
+            or isinstance(node, (ast.Attribute, ast.Name, ast.GeneratorExp))
+        ):
+            return Position(*last_token.start)
+
+        return Position(*last_token.end)
+
     def generic_visit(self, node: ast.AST) -> None:
         if self.found:
             return
@@ -179,7 +200,7 @@ class NodeFinder(ast.NodeVisitor):
             return
 
         start = Position.from_node_start(node)
-        end = Position.from_node_end(node)
+        end = self._get_end_of_node(node)
 
         if end < self.target_position:
             # we're clear before the target
