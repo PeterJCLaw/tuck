@@ -12,7 +12,7 @@ from .editing import MutationType, WrappingSummary
 TAst = TypeVar('TAst', bound=ast.AST)
 
 
-WRAPPING_FUNTIONS = []
+WRAPPING_FUNCTIONS = []
 
 
 def node_wrapper(ast_type: Type[TAst]) -> Callable[
@@ -22,7 +22,7 @@ def node_wrapper(ast_type: Type[TAst]) -> Callable[
     def wrapper(
         func: Callable[[ASTTokens, TAst], WrappingSummary],
     ) -> Callable[[ASTTokens, TAst], WrappingSummary]:
-        WRAPPING_FUNTIONS.append((ast_type, func))
+        WRAPPING_FUNCTIONS.append((ast_type, func))
         return func
     return wrapper
 

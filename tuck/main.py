@@ -13,12 +13,12 @@ from .editing import (
     merge_insertions,
     indent_interim_lines,
 )
-from .wrappers import WRAPPING_FUNTIONS
+from .wrappers import WRAPPING_FUNCTIONS
 from .exceptions import TuckError
 
 TAst = TypeVar('TAst', bound=ast.AST)
 
-WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNTIONS)
+WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNCTIONS)
 
 
 class TargetSyntaxError(TuckError):
@@ -27,7 +27,7 @@ class TargetSyntaxError(TuckError):
 
 
 def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary:
-    for ast_type, func in WRAPPING_FUNTIONS:
+    for ast_type, func in WRAPPING_FUNCTIONS:
         if isinstance(node, ast_type):
             return func(asttokens, node)
 
