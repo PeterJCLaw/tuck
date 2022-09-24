@@ -10,7 +10,7 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
                 1,
                 1,
                 """
-                # abcd
+                # comment
                 """,
                 "",
             )

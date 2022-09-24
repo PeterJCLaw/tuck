@@ -1302,20 +1302,20 @@ class TestIntegration(BaseWrapperTestCase):
             2,
             """
             func([
-                # bees
+                # comment
                 bees,
 
-                # bees
+                # comment
                 bees,
             ])
             """,
             """
             func(
                 [
-                    # bees
+                    # comment
                     bees,
 
-                    # bees
+                    # comment
                     bees,
                 ],
             )
@@ -1328,22 +1328,22 @@ class TestIntegration(BaseWrapperTestCase):
             2,
             """
             func([
-                # bees
+                # comment
                 bees,
 
 
-                # bees
+                # comment
                 bees,
             ])
             """,
             """
             func(
                 [
-                    # bees
+                    # comment
                     bees,
 
 
-                    # bees
+                    # comment
                     bees,
                 ],
             )
