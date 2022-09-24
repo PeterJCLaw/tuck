@@ -1,3 +1,4 @@
+import ast
 import enum
 import itertools
 from typing import Set, List, Tuple, Iterable, Sequence
@@ -35,6 +36,7 @@ class EditsOverlapError(TuckError):
 def indent_interim_lines(
     asttokens: ASTTokens,
     wrapping_summary: WrappingSummary,
+    root: ast.AST,
 ) -> WrappingSummary:
     if not wrapping_summary:
         # No changes to be made
@@ -63,8 +65,7 @@ def indent_interim_lines(
             continue
 
         finder = AffectedNodeFinder(position)
-        assert asttokens.tree is not None
-        finder.visit(asttokens.tree)
+        finder.visit(root)
 
         if finder.found_node is not None:
             node = finder.found_node

@@ -150,7 +150,11 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
         Position.from_node_start(node),
     )
 
-    wrapping_summary = indent_interim_lines(asttokens, wrapping_summary)
+    wrapping_summary = indent_interim_lines(
+        asttokens,
+        wrapping_summary,
+        root=node,
+    )
 
     insertions = [
         (pos, ''.join(mutations[x] for x in mutation_types))
