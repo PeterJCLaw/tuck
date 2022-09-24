@@ -1173,8 +1173,8 @@ class TestIntegration(BaseWrapperTestCase):
 
     def test_nested_function_call_already_partially_wrapped(self) -> None:
         self.assertTransform(
-            4,
             1,
+            3,
             """
             foo("abcd {} {}".format(
                 'efgh',
@@ -1336,7 +1336,7 @@ class TestIntegration(BaseWrapperTestCase):
 
     def test_indented_nested_function_call_already_partially_wrapped(self) -> None:
         self.assertTransform(
-            5,
+            2,
             5,
             """
             if True:
