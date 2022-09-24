@@ -540,7 +540,7 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    def test_generator_expression_with_conditonal(self) -> None:
+    def test_generator_expression_with_conditional(self) -> None:
         self.assertTransform(
             1,
             15,
@@ -556,7 +556,7 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
-    def test_generator_expression_with_conditonal_and_inner_loop(self) -> None:
+    def test_generator_expression_with_conditional_and_inner_loop(self) -> None:
         self.assertTransform(
             1,
             15,
