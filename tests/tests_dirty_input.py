@@ -377,6 +377,46 @@ class TestDirtyInput(BaseWrapperTestCase):
             """,
         )
 
+    def test_wrapped_tuple(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            val = (
+                foo,
+                bar,
+                None,
+            )
+            """,
+            """
+            val = (
+                foo,
+                bar,
+                None,
+            )
+            """,
+        )
+
+    def test_wrapped_tuple_subscript(self) -> None:
+        self.assertTransform(
+            2,
+            8,
+            """
+            val = Union[
+                Foo,
+                Bar,
+                None,
+            ]
+            """,
+            """
+            val = Union[
+                Foo,
+                Bar,
+                None,
+            ]
+            """,
+        )
+
     def test_commented_three_line_boolean_expression(self) -> None:
         self.assertTransform(
             2,

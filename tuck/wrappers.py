@@ -438,13 +438,14 @@ def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
                 MutationType.OPEN_PAREN,
             ))
 
-        end_pos = Position(*_last_token(node).end)
-
         if len(node.elts) > 1:
             summary.append((
-                end_pos,
+                Position(*last_token.end),
                 MutationType.TRAILING_COMMA,
             ))
+
+        next_token = asttokens.next_token(last_token)
+        end_pos = Position(*next_token.start)
 
         summary.append((
             end_pos,
