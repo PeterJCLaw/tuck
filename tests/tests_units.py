@@ -59,6 +59,21 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
                 """,
             )
 
+    def test_function_body_unsuitable_when_not_on_other_node(self) -> None:
+        with self.assertRaises(tuck.NoSuitableNodeFoundError):
+            self.assertTransform(
+                2,
+                2,
+                """
+                def foo():
+                    pass
+                """,
+                """
+                def foo():
+                    pass
+                """,
+            )
+
 
 class TestMultiEditing(BaseWrapperTestCase):
     def test_overlap_same_statement(self) -> None:

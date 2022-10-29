@@ -126,7 +126,7 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
     assert asttokens.tree is not None
     finder.visit(asttokens.tree)
 
-    node = finder.found_node
+    node = finder.get_found_node(asttokens)
 
     # Note: insertions are actually applied in reverse, though we'll generate
     # them forwards.

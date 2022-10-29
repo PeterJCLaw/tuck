@@ -144,21 +144,21 @@ class NodeFinder(ast.NodeVisitor):
 
         return reversed_stack[offset:]
 
-    def _check_not_in_body(self, prev_node: Optional[ast.AST], node: ast.AST) -> None:
-        if not prev_node:
-            return
-
+    def _check_not_in_body(self, node: ast.AST, asttokens: ASTTokens) -> None:
         body = getattr(node, 'body', None)
         if not body or not isinstance(body, list):
             return
 
-        if prev_node in body:
+        first_token = _first_token(body[0])
+        colon = asttokens.find_token(first_token, token.OP, ':', reverse=True)
+        body_start = Position(*colon.end)
+
+        if self.target_position > body_start:
             # Don't infer upwards from a function definition or if
             # statement body to the container.
             raise NoSuitableNodeFoundError(self.node_stack)
 
-    @property
-    def found_node(self) -> ast.AST:
+    def get_found_node(self, asttokens: ASTTokens) -> ast.AST:
         if not self.found:
             raise NoNodeFoundError()
 
@@ -169,7 +169,7 @@ class NodeFinder(ast.NodeVisitor):
             [None, *reversed_stack],
         ):
             if isinstance(node, self.target_node_types):
-                self._check_not_in_body(prev_node, node)
+                self._check_not_in_body(node, asttokens)
                 return node
 
         raise NoSupportedNodeFoundError(self.node_stack)
