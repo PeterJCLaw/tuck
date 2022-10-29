@@ -352,6 +352,7 @@ def wrap_if(asttokens: ASTTokens, node: ast.If) -> WrappingSummary:
 def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
     if_token = asttokens.find_token(_first_token(node.test), token.NAME, 'if', reverse=True)
     else_token = asttokens.find_token(_last_token(node.test), token.NAME, 'else')
+    next_token = asttokens.next_token(_last_token(node))
 
     summary = [(
         Position(*_first_token(node).start),
@@ -363,7 +364,7 @@ def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
         Position(*else_token.start),
         MutationType.WRAP_INDENT,
     ), (
-        Position(*_last_token(node).end),
+        Position(*next_token.start),
         MutationType.WRAP,
     )]
 
