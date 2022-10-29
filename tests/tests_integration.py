@@ -334,6 +334,40 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_node_around_f_string(self) -> None:
+        self.assertTransform(
+            1,
+            8,
+            """
+            foo = (f'ab{c}d', 'defg')
+            """,
+            """
+            foo = (
+                f'ab{c}d',
+                'defg',
+            )
+            """,
+        )
+
+    def test_node_around_multipart_string(self) -> None:
+        with self.assertRaises(tuck.NoSupportedNodeFoundError):
+            self.assertTransform(
+                2,
+                6,
+                """
+                foo = (
+                    'abcd'
+                    'defg'
+                )
+                """,
+                """
+                foo = (
+                    'abcd'
+                    'defg'
+                )
+                """,
+            )
+
     def test_dict_comprehension(self) -> None:
         self.assertTransform(
             1,

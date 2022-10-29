@@ -221,6 +221,10 @@ class NodeFinder(ast.NodeVisitor):
 
         self.found = True
 
+    def visit_JoinedStr(self, node: ast.JoinedStr) -> None:
+        # JoinedStr is f-strings
+        return
+
 
 def get_current_indent(asttokens: ASTTokens, node: ast.AST) -> int:
     first_token = _first_token(node)
