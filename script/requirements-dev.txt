@@ -1,0 +1,4 @@
+-r linting/requirements.txt
+-r typing/requirements.txt
+
+-r release/requirements.txt
