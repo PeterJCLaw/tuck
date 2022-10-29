@@ -15,6 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
 
+    package_data={'tuck': ['py.typed']},
     packages=find_packages(exclude=['tests']),
 
     author="Peter Law",
