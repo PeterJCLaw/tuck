@@ -39,6 +39,6 @@ setup(
     ],
 
     install_requires=(
-        'asttokens',
+        'asttokens >=2, <3',
     ),
 )
