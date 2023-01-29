@@ -427,11 +427,11 @@ def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
 
         return True
 
-    needs_parentheses = needs_parentheses_()
-
     summary = wrap_node_start_positions(asttokens, node.elts)
 
     if not is_parenthesised:
+        needs_parentheses = needs_parentheses_()
+
         if needs_parentheses:
             summary.insert(0, (
                 Position.from_node_start(node),
