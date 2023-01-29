@@ -422,7 +422,7 @@ def wrap_tuple(asttokens: ASTTokens, node: ast.Tuple) -> WrappingSummary:
     def needs_parentheses_() -> bool:
         prev_token = asttokens.prev_token(first_token)
         next_token = asttokens.next_token(last_token)
-        if prev_token.string in '[' or next_token.string == ']':
+        if prev_token.string == '[' or next_token.string == ']':
             return False
 
         return True
