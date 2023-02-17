@@ -27,6 +27,7 @@ references:
           echo "# $f" >> .checksum
           cat $f >> .checksum
         done
+        python3 --version | tee -a .checksum
   restore-dependencies-cache: &restore-dependencies-cache
     restore_cache:
       keys:
