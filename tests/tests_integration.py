@@ -744,6 +744,52 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_if_expression_within_dict_comprehension(self) -> None:
+        self.assertTransform(
+            2,
+            27,
+            """
+            x = {
+                key: something(value) if value is not None else None
+                for key, value in y.items()
+            }
+            """,
+            """
+            x = {
+                key: (
+                    something(value)
+                    if value is not None
+                    else None
+                )
+                for key, value in y.items()
+            }
+            """,
+        )
+
+    def test_if_expression_within_dict_comprehension_partially_wrapped(self) -> None:
+        self.assertTransform(
+            3,
+            9,
+            """
+            x = {
+                key: something(value)
+                if value is not None
+                else None
+                for key, value in y.items()
+            }
+            """,
+            """
+            x = {
+                key: (
+                    something(value)
+                    if value is not None
+                    else None
+                )
+                for key, value in y.items()
+            }
+            """,
+        )
+
     def test_if_statement(self) -> None:
         self.assertTransform(
             1,

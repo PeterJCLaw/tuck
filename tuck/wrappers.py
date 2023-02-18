@@ -378,8 +378,14 @@ def wrap_if_exp(asttokens: ASTTokens, node: ast.IfExp) -> WrappingSummary:
             Position.from_node_start(node),
             MutationType.OPEN_PAREN,
         ))
+        last_token_end = _last_token(node).end
+        if last_token_end != next_token.start:
+            summary.append((
+                Position(*last_token_end),
+                MutationType.WRAP,
+            ))
         summary.append((
-            Position(*_last_token(node).end),
+            Position(*last_token_end),
             MutationType.CLOSE_PAREN,
         ))
 
