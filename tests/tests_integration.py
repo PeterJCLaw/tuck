@@ -590,6 +590,23 @@ class TestIntegration(BaseWrapperTestCase):
             """,
         )
 
+    def test_generator_expression_with_parenthesised_conditional(self) -> None:
+        # Arguably more likely if the conditional is a walrus expression
+        self.assertTransform(
+            1,
+            15,
+            """
+            foo = (x for x in range(42) if (x % 3 == 0))
+            """,
+            """
+            foo = (
+                x
+                for x in range(42)
+                if (x % 3 == 0)
+            )
+            """,
+        )
+
     def test_generator_expression_with_conditional_and_inner_loop(self) -> None:
         self.assertTransform(
             1,

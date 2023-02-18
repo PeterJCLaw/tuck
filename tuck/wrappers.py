@@ -118,8 +118,12 @@ def wrap_generator_body(
     for generator in generators:
         start_positions.append(Position.from_node_start(generator))
         for compare in generator.ifs:
-            if_token = asttokens.prev_token(_first_token(compare))
-            assert if_token.string == 'if'
+            if_token = asttokens.find_token(
+                _first_token(compare),
+                token.NAME,
+                tok_str='if',
+                reverse=True,
+            )
             start_positions.append(Position(*if_token.start))
 
     return [(x, MutationType.WRAP_INDENT) for x in start_positions]
