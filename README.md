@@ -1,6 +1,6 @@
 # Tuck
 
-[![CircleCI](https://circleci.com/gh/PeterJCLaw/tuck/tree/master.svg?style=svg)](https://circleci.com/gh/PeterJCLaw/tuck/tree/master)
+[![CircleCI](https://circleci.com/gh/PeterJCLaw/tuck/tree/main.svg?style=svg)](https://circleci.com/gh/PeterJCLaw/tuck/tree/main)
 
 Semi-automated Python formatting.
 
