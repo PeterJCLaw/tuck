@@ -7,10 +7,10 @@ from .ast import (
 )
 from .cli import main
 from .main import process
-from .editing import apply_insertions, EditsOverlapError
+from .editing import Range, apply_edits, EditsOverlapError
 
 __all__ = (
-    'apply_insertions',
+    'apply_edits',
     'EditsOverlapError',
     'main',
     'NodeSearchError',
@@ -19,4 +19,5 @@ __all__ = (
     'NoSupportedNodeFoundError',
     'Position',
     'process',
+    'Range',
 )

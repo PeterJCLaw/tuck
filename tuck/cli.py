@@ -8,7 +8,7 @@ from typing import Dict, Union
 
 from .ast import Position
 from .main import process
-from .editing import Insertion, apply_insertions
+from .editing import Edit, apply_edits
 from .exceptions import TuckError
 
 FAIL = '\033[91m'
@@ -19,24 +19,34 @@ LSP_Range = Dict[str, Dict[str, int]]
 LSP_TextEdit = Dict[str, Union[str, LSP_Range]]
 
 
-def insertion_as_lsp_data(position: Position, new_text: str) -> LSP_TextEdit:
+def position_as_lsp_data(position: Position) -> dict[str, int]:
     """
-    Convert an expanded `Insertion` to a Language Server Protocol compatible
-    dictionaries for display as JSON.
+    Convert a `Position` to a Language Server Protocol compatible dictionaries
+    for display as JSON.
 
     Note: in LSP line numbers are zero-based, while our `Position`s are
     one-based.
     """
-    pos = {'line': position.line - 1, 'character': position.col}
+    return {'line': position.line - 1, 'character': position.col}
+
+
+def edit_as_lsp_data(edit: Edit) -> LSP_TextEdit:
+    """
+    Convert an `Edit` to a Language Server Protocol compatible
+    dictionaries for display as JSON.
+    """
     return {
-        'range': {'start': pos, 'end': pos},
-        'newText': new_text,
+        'range': {
+            'start': position_as_lsp_data(edit.range.start),
+            'end': position_as_lsp_data(edit.range.end),
+        },
+        'newText': edit.new_text,
     }
 
 
-def print_edits(insertions: list[Insertion]) -> None:
-    edits = [insertion_as_lsp_data(*x) for x in insertions]
-    print(json.dumps({'edits': edits}))
+def print_edits(edits: list[Edit]) -> None:
+    lsp_edits = [edit_as_lsp_data(x) for x in edits]
+    print(json.dumps({'edits': lsp_edits}))
 
 
 def parse_position(position: str) -> Position:
@@ -88,7 +98,7 @@ def run(args: argparse.Namespace) -> None:
         content = args.file.read()
 
     try:
-        insertions = process(args.positions, content, args.file.name)
+        edits = process(args.positions, content, args.file.name)
     except TuckError as e:
         if args.edits:
             # Assume the consumer is a tool looking for JSON
@@ -101,7 +111,7 @@ def run(args: argparse.Namespace) -> None:
         return
 
     if args.diff:
-        new_content = apply_insertions(content, insertions)
+        new_content = apply_edits(content, edits)
         print(
             "".join(difflib.unified_diff(
                 content.splitlines(keepends=True),
@@ -112,9 +122,9 @@ def run(args: argparse.Namespace) -> None:
             end='',
         )
     elif args.edits:
-        print_edits(insertions)
+        print_edits(edits)
     else:
-        new_content = apply_insertions(content, insertions)
+        new_content = apply_edits(content, edits)
         print(new_content, end='')
 
 

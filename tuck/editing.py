@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import enum
 import itertools
+import dataclasses
 from typing import List, Tuple, Iterable, Sequence
 
 from asttokens import ASTTokens
@@ -23,7 +24,30 @@ class MutationType(enum.Enum):
 
 
 WrappingSummary = List[Tuple[Position, MutationType]]
-Insertion = Tuple[Position, str]
+
+
+@dataclasses.dataclass(frozen=True, order=True)
+class Range:
+    start: Position
+    end: Position
+
+    def __post_init__(self) -> None:
+        if self.start > self.end:
+            raise ValueError(f"Start must be before end ({self.start} > {self.end})")
+
+
+@dataclasses.dataclass(frozen=True)
+class Edit:
+    range: Range  # noqa: A003
+    new_text: str
+
+    @classmethod
+    def insertion(cls, position: Position, new_text: str) -> Edit:
+        return cls(Range(position, position), new_text)
+
+    @classmethod
+    def deletion(cls, start: Position, end: Position) -> Edit:
+        return cls(Range(start, end), '')
 
 
 class EditsOverlapError(TuckError):
@@ -103,50 +127,52 @@ def coalesce(summary: WrappingSummary) -> Iterable[tuple[Position, list[Mutation
         yield pos, [x for _, x in grouped]
 
 
-def all_are_disjoint(grouped: Iterable[list[Position]]) -> bool:
+def all_are_disjoint(grouped: Iterable[list[Range]]) -> bool:
     ranges = sorted(
-        (min(positions), max(positions))
-        for positions in grouped
-        if positions
+        Range(min(ranges).start, max(ranges).end)
+        for ranges in grouped
+        if ranges
     )
 
-    for (_, lower_end), (upper_start, _) in zip(ranges, ranges[1:]):
-        if upper_start < lower_end:
+    for lower, upper in zip(ranges, ranges[1:]):
+        if upper.start < lower.end:
             return False
 
     return True
 
 
-def merge_insertions(grouped_insertions: Iterable[list[Insertion]]) -> list[Insertion]:
-    flat_insertions = []
-    positions: list[list[Position]] = []
+def merge_edits(grouped_edits: Iterable[list[Edit]]) -> list[Edit]:
+    flat_edits = []
+    ranges: list[list[Range]] = []
 
-    for insertions in grouped_insertions:
-        flat_insertions.extend(insertions)
-        positions.append([x for x, _ in insertions])
+    for edits in grouped_edits:
+        flat_edits.extend(edits)
+        ranges.append([x.range for x in edits])
 
-    if not all_are_disjoint(positions):
+    if not all_are_disjoint(ranges):
         raise EditsOverlapError()
 
-    return flat_insertions
+    return flat_edits
 
 
-def apply_insertions(content: str, insertions: Sequence[Insertion]) -> str:
+def apply_edits(content: str, edits: Sequence[Edit]) -> str:
     new_content = content.splitlines(keepends=True)
 
-    for position, insertion in reversed(insertions):
-        line = position.line - 1
-        col = position.col
+    for edit in reversed(edits):
+        assert edit.range.start == edit.range.end, "Non-zero-length ranges not supported"
+
+        line = edit.range.start.line - 1
+        col = edit.range.start.col
 
         text = new_content[line]
         left, right = text[:col], text[col:]
 
-        if insertion.startswith('\n'):
+        if edit.new_text.startswith('\n'):
             # TODO: ideally we'd have full edit support, rather than just
             # insertions, which would mean we could handle this at an earlier
             # stage and thus in a way that also works for editors.
             left = left.rstrip()
 
-        new_content[line] = left + insertion + right
+        new_content[line] = left + edit.new_text + right
 
     return "".join(new_content)

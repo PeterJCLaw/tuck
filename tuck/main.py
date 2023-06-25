@@ -7,12 +7,12 @@ from asttokens import ASTTokens
 
 from .ast import Position, NodeFinder, get_current_indent
 from .editing import (
+    Edit,
     coalesce,
-    Insertion,
     INDENT_SIZE,
+    merge_edits,
     MutationType,
     WrappingSummary,
-    merge_insertions,
     indent_interim_lines,
 )
 from .wrappers import WRAPPING_FUNCTIONS
@@ -130,8 +130,8 @@ def determine_node(asttokens: ASTTokens, position: Position) -> ast.AST:
     return finder.get_found_node(asttokens)
 
 
-def determine_insertions(asttokens: ASTTokens, node: ast.AST) -> list[Insertion]:
-    # Note: insertions are actually applied in reverse, though we'll generate
+def determine_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
+    # Note: edits are actually applied in reverse, though we'll generate
     # them forwards.
 
     current_indent = get_current_indent(asttokens, node)
@@ -159,19 +159,19 @@ def determine_insertions(asttokens: ASTTokens, node: ast.AST) -> list[Insertion]
         root=node,
     )
 
-    insertions = [
-        (pos, ''.join(mutations[x] for x in mutation_types))
+    edits = [
+        Edit.insertion(pos, ''.join(mutations[x] for x in mutation_types))
         for pos, mutation_types in coalesce(wrapping_summary)
     ]
 
-    return insertions
+    return edits
 
 
 def process(
     positions: list[Position],
     content: str,
     filename: str,
-) -> list[Insertion]:
+) -> list[Edit]:
     try:
         asttokens = ASTTokens(content, parse=True, filename=filename)
     except SyntaxError as e:
@@ -184,11 +184,11 @@ def process(
         for position in positions
     )
 
-    insertions = merge_insertions(
-        determine_insertions(asttokens, node)
+    edits = merge_edits(
+        determine_edits(asttokens, node)
         for node in nodes
     )
 
-    insertions.sort()
+    edits.sort(key=lambda x: x.range)
 
-    return insertions
+    return edits

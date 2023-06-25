@@ -20,8 +20,8 @@ class BaseWrapperTestCase(unittest.TestCase):
         content = textwrap.dedent(content[1:])
         expected_output = textwrap.dedent(expected_output[1:])
 
-        insertions = tuck.process(positions, content, 'demo.py')
-        new_content = tuck.apply_insertions(content, insertions)
+        edits = tuck.process(positions, content, 'demo.py')
+        new_content = tuck.apply_edits(content, edits)
 
         self.assertEqual(expected_output, new_content, message)
 
