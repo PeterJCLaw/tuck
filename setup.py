@@ -41,4 +41,5 @@ setup(
     install_requires=(
         'asttokens >=2, <3',
     ),
+    python_requires='>=3.7',
 )
