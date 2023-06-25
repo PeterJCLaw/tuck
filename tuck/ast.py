@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import ast
 import token
 import functools
-from typing import List, Type, Tuple, TypeVar, Optional
+from typing import TypeVar
 
 import asttokens.util
 from asttokens import ASTTokens
@@ -34,11 +36,11 @@ class Position:
     """
 
     @classmethod
-    def from_node_start(cls, node: ast.AST) -> 'Position':
+    def from_node_start(cls, node: ast.AST) -> Position:
         return cls(*_first_token(node).start)
 
     @classmethod
-    def from_node_end(cls, node: ast.AST) -> 'Position':
+    def from_node_end(cls, node: ast.AST) -> Position:
         return cls(*_last_token(node).start)
 
     def __init__(self, line: int, col: int) -> None:
@@ -51,7 +53,7 @@ class Position:
 
         return self.line == other.line and self.col == other.col
 
-    def __lt__(self, other: 'Position') -> bool:
+    def __lt__(self, other: Position) -> bool:
         if not isinstance(other, Position):
             return NotImplemented  # type: ignore[unreachable]
 
@@ -77,7 +79,7 @@ class NoNodeFoundError(NodeSearchError):
 
 
 class NoSuitableNodeFoundError(NodeSearchError):
-    def __init__(self, node_stack: List[ast.AST]) -> None:
+    def __init__(self, node_stack: list[ast.AST]) -> None:
         self.node_stack = node_stack
         super().__init__(
             'no_suitable_node_found',
@@ -88,7 +90,7 @@ class NoSuitableNodeFoundError(NodeSearchError):
 
 
 class NoSupportedNodeFoundError(NodeSearchError):
-    def __init__(self, node_stack: List[ast.AST]) -> None:
+    def __init__(self, node_stack: list[ast.AST]) -> None:
         self.node_stack = node_stack
         super().__init__(
             'no_supported_node_found',
@@ -103,15 +105,15 @@ class NodeFinder(ast.NodeVisitor):
     Visitor which finds the AST node that should be wrapped for a given position.
     """
 
-    def __init__(self, position: Position, node_types: Tuple[Type[ast.AST], ...]) -> None:
+    def __init__(self, position: Position, node_types: tuple[type[ast.AST], ...]) -> None:
         self.target_position = position
         self.target_node_types = node_types
 
-        self.node_stack: List[ast.AST] = []
+        self.node_stack: list[ast.AST] = []
 
         self.found = False
 
-    def get_filtered_stack(self) -> List[ast.AST]:
+    def get_filtered_stack(self) -> list[ast.AST]:
         """
         In some cases we want to skip over the actual place in the AST and
         onwards to a parent node. This filtering achieves that.
@@ -247,7 +249,7 @@ class AffectedNodeFinder(ast.NodeVisitor):
         self.target_position = position
 
         self._found: bool = False
-        self.found_node: Optional[ast.AST] = None
+        self.found_node: ast.AST | None = None
 
     def generic_visit(self, node: ast.AST) -> None:
         if self._found:

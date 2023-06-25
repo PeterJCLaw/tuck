@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import sys
 import json
 import difflib
 import argparse
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 from .ast import Position
 from .main import process
@@ -32,7 +34,7 @@ def insertion_as_lsp_data(position: Position, new_text: str) -> LSP_TextEdit:
     }
 
 
-def print_edits(insertions: List[Insertion]) -> None:
+def print_edits(insertions: list[Insertion]) -> None:
     edits = [insertion_as_lsp_data(*x) for x in insertions]
     print(json.dumps({'edits': edits}))
 
@@ -42,7 +44,7 @@ def parse_position(position: str) -> Position:
     return Position(line, col)
 
 
-def parse_args(argv: List[str]) -> argparse.Namespace:
+def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Wrap the python statement at a given position within a text document.",
     )
@@ -116,5 +118,5 @@ def run(args: argparse.Namespace) -> None:
         print(new_content, end='')
 
 
-def main(argv: List[str] = sys.argv[1:]) -> None:
+def main(argv: list[str] = sys.argv[1:]) -> None:
     return run(parse_args(argv))

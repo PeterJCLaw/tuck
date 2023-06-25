@@ -1,17 +1,18 @@
+from __future__ import annotations
+
 import io
 import json
 import tempfile
 import textwrap
 import unittest
 import contextlib
-from typing import List
 from unittest import mock
 
 import tuck
 
 
 class TestCli(unittest.TestCase):
-    def run_tuck(self, content: str, argv: List[str]) -> str:
+    def run_tuck(self, content: str, argv: list[str]) -> str:
         with tempfile.NamedTemporaryFile(suffix='.py', mode='w+t') as target:
             target.write(content)
             target.flush()

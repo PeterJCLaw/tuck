@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import textwrap
 import unittest
-from typing import List
 
 import tuck
 from tuck import Position
@@ -9,7 +10,7 @@ from tuck import Position
 class BaseWrapperTestCase(unittest.TestCase):
     def assertTransforms(
         self,
-        positions: List[Position],
+        positions: list[Position],
         content: str,
         expected_output: str,
         *,

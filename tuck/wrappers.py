@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import ast
 import token
 import keyword
-from typing import List, Type, Tuple, Union, TypeVar, Callable, Iterable
+from typing import TypeVar, Callable, Iterable
 
 from asttokens import ASTTokens
 from asttokens.util import Token
@@ -15,7 +17,7 @@ TAst = TypeVar('TAst', bound=ast.AST)
 WRAPPING_FUNCTIONS = []
 
 
-def node_wrapper(ast_type: Type[TAst]) -> Callable[
+def node_wrapper(ast_type: type[TAst]) -> Callable[
     [Callable[[ASTTokens, TAst], WrappingSummary]],
     Callable[[ASTTokens, TAst], WrappingSummary],
 ]:
@@ -27,7 +29,7 @@ def node_wrapper(ast_type: Type[TAst]) -> Callable[
     return wrapper
 
 
-def get_node_bounds(asttokens: ASTTokens, node: ast.expr) -> Tuple[Token, Token]:
+def get_node_bounds(asttokens: ASTTokens, node: ast.expr) -> tuple[Token, Token]:
     """
     Determine the outer bounds of the node, consuming any surrounding parentheses.
     """
@@ -72,7 +74,7 @@ def generator_is_parenthesised(asttokens: ASTTokens, node: ast.GeneratorExp) -> 
 
 def expression_is_parenthesised(
     asttokens: ASTTokens,
-    node: Union[ast.BoolOp, ast.IfExp],
+    node: ast.BoolOp | ast.IfExp,
 ) -> bool:
     prev_token = asttokens.prev_token(_first_token(node))
     next_token = asttokens.next_token(_last_token(node))
@@ -94,7 +96,7 @@ def node_start_position(asttokens: ASTTokens, node: ast.AST) -> Position:
 def node_start_positions(
     asttokens: ASTTokens,
     nodes: Iterable[ast.AST],
-) -> List[Position]:
+) -> list[Position]:
     return [node_start_position(asttokens, x) for x in nodes]
 
 
@@ -111,7 +113,7 @@ def wrap_node_start_positions(
 def wrap_generator_body(
     asttokens: ASTTokens,
     elt: ast.expr,
-    generators: List[ast.comprehension],
+    generators: list[ast.comprehension],
 ) -> WrappingSummary:
     start_positions = [Position.from_node_start(elt)]
 
@@ -284,7 +286,7 @@ def wrap_dict_comp(asttokens: ASTTokens, node: ast.DictComp) -> WrappingSummary:
 
 def wrap_function_def(
     asttokens: ASTTokens,
-    node: Union[ast.AsyncFunctionDef, ast.FunctionDef],
+    node: ast.AsyncFunctionDef | ast.FunctionDef,
 ) -> WrappingSummary:
     positions = node_start_positions(asttokens, node.args.args)
 

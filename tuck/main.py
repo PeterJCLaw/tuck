@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import ast
-from typing import List, Tuple, TypeVar, Optional
+from typing import TypeVar
 
 from asttokens import ASTTokens
 
@@ -57,7 +59,7 @@ def remove_redundant_wrapping_operations(
     def should_keep(
         position: Position,
         mutation: MutationType,
-        previous: Optional[Tuple[Position, MutationType]],
+        previous: tuple[Position, MutationType] | None,
     ) -> bool:
         if mutation == MutationType.TRAILING_COMMA:
             tok = asttokens.get_token(position.line, position.col)
@@ -121,7 +123,7 @@ def remove_redundant_wrapping_operations(
     return wrapping_summary
 
 
-def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Insertion]:
+def determine_insertions(asttokens: ASTTokens, position: Position) -> list[Insertion]:
     finder = NodeFinder(position, WRAPPABLE_NODE_TYPES)
     assert asttokens.tree is not None
     finder.visit(asttokens.tree)
@@ -165,10 +167,10 @@ def determine_insertions(asttokens: ASTTokens, position: Position) -> List[Inser
 
 
 def process(
-    positions: List[Position],
+    positions: list[Position],
     content: str,
     filename: str,
-) -> List[Insertion]:
+) -> list[Insertion]:
     try:
         asttokens = ASTTokens(content, parse=True, filename=filename)
     except SyntaxError as e:

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import ast
 import enum
 import itertools
-from typing import Set, List, Tuple, Iterable, Sequence
+from typing import List, Tuple, Iterable, Sequence
 
 from asttokens import ASTTokens
 
@@ -55,7 +57,7 @@ def indent_interim_lines(
     # cases things are already in the right place. This assumption may turn out
     # to be invalid, in which case a new approach may be needed here.
 
-    lines_to_indent: Set[int] = set()
+    lines_to_indent: set[int] = set()
 
     for position, mutation_type in wrapping_summary:
         if mutation_type not in (
@@ -96,12 +98,12 @@ def indent_interim_lines(
     return wrapping_summary
 
 
-def coalesce(summary: WrappingSummary) -> Iterable[Tuple[Position, List[MutationType]]]:
+def coalesce(summary: WrappingSummary) -> Iterable[tuple[Position, list[MutationType]]]:
     for pos, grouped in itertools.groupby(summary, lambda x: x[0]):
         yield pos, [x for _, x in grouped]
 
 
-def all_are_disjoint(grouped: Iterable[List[Position]]) -> bool:
+def all_are_disjoint(grouped: Iterable[list[Position]]) -> bool:
     ranges = sorted(
         (min(positions), max(positions))
         for positions in grouped
@@ -115,9 +117,9 @@ def all_are_disjoint(grouped: Iterable[List[Position]]) -> bool:
     return True
 
 
-def merge_insertions(grouped_insertions: Iterable[List[Insertion]]) -> List[Insertion]:
+def merge_insertions(grouped_insertions: Iterable[list[Insertion]]) -> list[Insertion]:
     flat_insertions = []
-    positions: List[List[Position]] = []
+    positions: list[list[Position]] = []
 
     for insertions in grouped_insertions:
         flat_insertions.extend(insertions)
