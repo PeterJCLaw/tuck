@@ -159,20 +159,22 @@ def apply_edits(content: str, edits: Sequence[Edit]) -> str:
     new_content = content.splitlines(keepends=True)
 
     for edit in reversed(edits):
-        assert edit.range.start == edit.range.end, "Non-zero-length ranges not supported"
+        end_line = edit.range.end.line - 1
+        end_col = edit.range.end.col
 
-        line = edit.range.start.line - 1
-        col = edit.range.start.col
+        right = new_content[end_line][end_col:]
 
-        text = new_content[line]
-        left, right = text[:col], text[col:]
+        start_line = edit.range.start.line - 1
+        start_col = edit.range.start.col
+
+        left = new_content[start_line][:start_col]
 
         if edit.new_text.startswith('\n'):
-            # TODO: ideally we'd have full edit support, rather than just
-            # insertions, which would mean we could handle this at an earlier
-            # stage and thus in a way that also works for editors.
+            # TODO: now we have full edit support, rather than just insertions,
+            # we should be able handle this at an earlier stage and thus in a
+            # way that also works for editors.
             left = left.rstrip()
 
-        new_content[line] = left + edit.new_text + right
+        new_content[start_line:end_line + 1] = [left + edit.new_text + right]
 
     return "".join(new_content)

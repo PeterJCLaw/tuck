@@ -101,6 +101,132 @@ class TestApplyEdits(unittest.TestCase):
             ''',
         )
 
+    def test_replace_point_empty_string(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(1, 4), Position(1, 4)), ''),
+            ],
+            '''
+            abc def
+            ''',
+            '''
+            abc def
+            ''',
+        )
+
+    def test_single_deletion(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(1, 2), Position(1, 4)), ''),
+            ],
+            '''
+            abc def
+            ''',
+            '''
+            abdef
+            ''',
+        )
+
+    def test_single_deletion_adjacent_lines(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(1, 2), Position(2, 2)), ''),
+            ],
+            '''
+            abc
+            def
+            ''',
+            '''
+            abf
+            ''',
+        )
+
+    def test_single_deletion_multiline(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(2, 2), Position(4, 2)), ''),
+            ],
+            '''
+            abc
+            def
+            123
+            ghi
+            jkl
+            ''',
+            '''
+            abc
+            dei
+            jkl
+            ''',
+        )
+
+    def test_multiple_deletions_single_line(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(1, 3), Position(1, 8)), ''),
+                Edit(Range(Position(1, 12), Position(1, 17)), ''),
+            ],
+            '''
+            abc-123- def-456-
+            ''',
+            '''
+            abc def
+            ''',
+        )
+
+    def test_multiple_deletions_new_line(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(2, 0), Position(3, 0)), ''),
+                Edit(Range(Position(3, 0), Position(3, 4)), ''),
+            ],
+            '''
+            abc
+            123
+            456
+            def
+            ''',
+            '''
+            abc
+            def
+            ''',
+        )
+
+    def test_replace_range(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(2, 0), Position(3, 0)), '123\n'),
+            ],
+            '''
+            abc
+            456
+            def
+            ''',
+            '''
+            abc
+            123
+            def
+            ''',
+        )
+
+    def test_insertion_and_deletion_a(self) -> None:
+        self.assertEdits(
+            [
+                Edit(Range(Position(2, 0), Position(2, 0)), '123\n'),
+                Edit(Range(Position(2, 0), Position(2, 4)), ''),
+            ],
+            '''
+            abc
+            456
+            def
+            ''',
+            '''
+            abc
+            123
+            def
+            ''',
+        )
+
 
 class TestAllAreDisjoint(unittest.TestCase):
     def position_range(self, line: int, col: int) -> Range:
