@@ -38,7 +38,7 @@ def print_edits(insertions: List[Insertion]) -> None:
 
 
 def parse_position(position: str) -> Position:
-    line, col = [int(x) for x in position.split(':')]
+    line, col = (int(x) for x in position.split(':'))
     return Position(line, col)
 
 

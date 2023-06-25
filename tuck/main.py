@@ -32,9 +32,9 @@ def get_wrapping_summary(asttokens: ASTTokens, node: ast.AST) -> WrappingSummary
             return func(asttokens, node)
 
     if not isinstance(node, WRAPPABLE_NODE_TYPES):
-        raise AssertionError("Unable to get wrapping positions for {}".format(node))
+        raise AssertionError(f"Unable to get wrapping positions for {node}")
 
-    raise AssertionError("Unsupported node type {}".format(node))
+    raise AssertionError(f"Unsupported node type {node}")
 
 
 def remove_redundant_wrapping_operations(

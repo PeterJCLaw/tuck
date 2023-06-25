@@ -64,7 +64,7 @@ class Position:
         return self.col < other.col
 
     def __repr__(self) -> str:
-        return 'Position(line={}, col={})'.format(self.line, self.col)
+        return f'Position(line={self.line}, col={self.col})'
 
 
 class NodeSearchError(TuckError, ValueError):
