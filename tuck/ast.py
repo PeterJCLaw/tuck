@@ -164,10 +164,7 @@ class NodeFinder(ast.NodeVisitor):
 
         reversed_stack = self.get_filtered_stack()
 
-        for node, prev_node in zip(
-            reversed_stack,
-            [None, *reversed_stack],
-        ):
+        for node in reversed_stack:
             if isinstance(node, self.target_node_types):
                 self._check_not_in_body(node, asttokens)
                 return node
