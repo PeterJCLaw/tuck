@@ -202,7 +202,7 @@ def wrap_call(asttokens: ASTTokens, node: ast.Call) -> WrappingSummary:
         and isinstance(node.args[0], ast.GeneratorExp)
         and not generator_is_parenthesised(asttokens, node.args[0])
     ):
-        generator_node = node.args[0]  # type: ast.GeneratorExp
+        generator_node: ast.GeneratorExp = node.args[0]
         # The generator needs parentheses adding, as well as wrapping
         summary = [(
             Position.from_node_start(generator_node),

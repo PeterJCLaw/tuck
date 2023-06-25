@@ -117,7 +117,7 @@ def all_are_disjoint(grouped: Iterable[List[Position]]) -> bool:
 
 def merge_insertions(grouped_insertions: Iterable[List[Insertion]]) -> List[Insertion]:
     flat_insertions = []
-    positions = []  # type: List[List[Position]]
+    positions: List[List[Position]] = []
 
     for insertions in grouped_insertions:
         flat_insertions.extend(insertions)

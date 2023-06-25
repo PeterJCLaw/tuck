@@ -107,7 +107,7 @@ class NodeFinder(ast.NodeVisitor):
         self.target_position = position
         self.target_node_types = node_types
 
-        self.node_stack = []  # type: List[ast.AST]
+        self.node_stack: List[ast.AST] = []
 
         self.found = False
 
