@@ -141,7 +141,7 @@ def apply_insertions(content: str, insertions: Sequence[Insertion]) -> str:
 
         if insertion.startswith('\n'):
             # TODO: ideally we'd have full edit support, rather than just
-            # insertions, which would mean we could handle this at an earler
+            # insertions, which would mean we could handle this at an earlier
             # stage and thus in a way that also works for editors.
             left = left.rstrip()
 
