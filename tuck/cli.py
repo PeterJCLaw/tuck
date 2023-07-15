@@ -104,7 +104,7 @@ def run(args: argparse.Namespace) -> None:
         content = args.file.read()
 
     try:
-        edits = process(args.positions, content, args.file.name)
+        edits = process(args.mode, args.positions, content, args.file.name)
     except TuckError as e:
         if args.edits:
             # Assume the consumer is a tool looking for JSON

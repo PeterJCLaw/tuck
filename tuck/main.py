@@ -139,7 +139,7 @@ def determine_node(asttokens: ASTTokens, position: Position) -> ast.AST:
     return finder.get_found_node(asttokens)
 
 
-def determine_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
+def determine_wrap_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
     # Note: edits are actually applied in reverse, though we'll generate
     # them forwards.
 
@@ -176,7 +176,12 @@ def determine_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
     return edits
 
 
+def determine_unwrap_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
+    raise NotImplementedError
+
+
 def process(
+    mode: Mode,
     positions: list[Position],
     content: str,
     filename: str,
@@ -192,6 +197,11 @@ def process(
         determine_node(asttokens, position)
         for position in positions
     )
+
+    determine_edits = {
+        Mode.WRAP: determine_wrap_edits,
+        Mode.UNWRAP: determine_unwrap_edits,
+    }[mode]
 
     edits = merge_edits(
         determine_edits(asttokens, node)
