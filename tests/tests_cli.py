@@ -92,7 +92,10 @@ class TestCli(unittest.TestCase):
     def test_edits_overlap_error(self) -> None:
         buffer = io.StringIO()
         with contextlib.redirect_stderr(buffer):
-            output = self.run_tuck('print(foo)', ['--positions', '1:1', '1:2'])
+            output = self.run_tuck(
+                'print(foo)',
+                ['--positions', '1:1', '1:2'],
+            )
 
         self.assertIn(
             "Unable to perform wrapping as the resulting edits contain overlaps. ",
