@@ -7,7 +7,7 @@ import argparse
 from typing import Dict, Union
 
 from .ast import Position
-from .main import process
+from .main import Mode, process
 from .editing import Edit, apply_edits
 from .exceptions import TuckError
 
@@ -75,7 +75,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             "distinct statements. It is an error if the edits overlap."
         ),
     )
-    parser.add_argument('--mode', choices=('wrap', 'unwrap'), default='wrap')
+    parser.add_argument(
+        '--mode',
+        choices=Mode,
+        type=Mode,
+        default=Mode.WRAP,
+        help="What operation to perform (default: %(default)s).",
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         '--diff',

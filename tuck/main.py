@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import enum
 from typing import TypeVar
 
 from asttokens import ASTTokens
@@ -21,6 +22,14 @@ from .exceptions import TuckError
 TAst = TypeVar('TAst', bound=ast.AST)
 
 WRAPPABLE_NODE_TYPES = tuple(x for x, _ in WRAPPING_FUNCTIONS)
+
+
+class Mode(enum.Enum):
+    WRAP = 'wrap'
+    UNWRAP = 'unwrap'
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class TargetSyntaxError(TuckError):
