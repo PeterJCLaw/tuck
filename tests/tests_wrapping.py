@@ -3,7 +3,7 @@ import tuck
 from .test_utils import BaseWrapperTestCase
 
 
-class TestIntegration(BaseWrapperTestCase):
+class TestWrapping(BaseWrapperTestCase):
     def test_single_key_dict_literal(self) -> None:
         self.assertTransform(
             1,
