@@ -275,3 +275,48 @@ class TestGroupsAreDisjoint(unittest.TestCase):
             [self.position_range(3, 1), self.position_range(1, 1)],
             [self.position_range(6, 1), self.position_range(2, 1)],
         ]))
+
+
+class TestAllAreDisjoint(unittest.TestCase):
+    def test_ok(self) -> None:
+        self.assertTrue(tuck.editing.all_are_disjoint([
+            Range(Position(1, 1), Position(2, 1)),
+            Range(Position(3, 1), Position(4, 1)),
+            Range(Position(5, 1), Position(6, 1)),
+        ]))
+
+    def test_first_two_overlap(self) -> None:
+        self.assertFalse(tuck.editing.all_are_disjoint([
+            Range(Position(1, 1), Position(2, 10)),
+            Range(Position(2, 1), Position(4, 1)),
+            Range(Position(5, 1), Position(6, 1)),
+        ]))
+
+    def test_first_and_last_overlap(self) -> None:
+        self.assertFalse(tuck.editing.all_are_disjoint([
+            Range(Position(2, 1), Position(4, 1)),
+            Range(Position(5, 1), Position(6, 1)),
+            Range(Position(1, 1), Position(2, 10)),
+        ]))
+
+    def test_last_overlaps_with_all_others(self) -> None:
+        self.assertFalse(tuck.editing.all_are_disjoint([
+            Range(Position(1, 1), Position(2, 10)),
+            Range(Position(3, 1), Position(4, 1)),
+            Range(Position(2, 1), Position(6, 1)),
+        ]))
+
+    def test_overlap_three_of_four(self) -> None:
+        self.assertFalse(tuck.editing.all_are_disjoint([
+            Range(Position(1, 1), Position(2, 10)),
+            Range(Position(1, 1), Position(6, 1)),
+            Range(Position(1, 1), Position(4, 1)),
+            Range(Position(6, 1), Position(10, 1)),
+        ]))
+
+    def test_all_overlap(self) -> None:
+        self.assertFalse(tuck.editing.all_are_disjoint([
+            Range(Position(1, 1), Position(2, 10)),
+            Range(Position(2, 1), Position(6, 1)),
+            Range(Position(1, 1), Position(3, 1)),
+        ]))
