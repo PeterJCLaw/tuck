@@ -127,7 +127,7 @@ def coalesce(summary: WrappingSummary) -> Iterable[tuple[Position, list[Mutation
         yield pos, [x for _, x in grouped]
 
 
-def all_are_disjoint(grouped: Iterable[list[Range]]) -> bool:
+def groups_are_disjoint(grouped: Iterable[list[Range]]) -> bool:
     ranges = sorted(
         Range(min(ranges).start, max(ranges).end)
         for ranges in grouped
@@ -149,7 +149,7 @@ def merge_edits(grouped_edits: Iterable[list[Edit]]) -> list[Edit]:
         flat_edits.extend(edits)
         ranges.append([x.range for x in edits])
 
-    if not all_are_disjoint(ranges):
+    if not groups_are_disjoint(ranges):
         raise EditsOverlapError()
 
     return flat_edits
