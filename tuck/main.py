@@ -177,6 +177,20 @@ def determine_wrap_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
 
 
 def determine_unwrap_edits(asttokens: ASTTokens, node: ast.AST) -> list[Edit]:
+    # I had at one point thought that we might be able to implement this purely
+    # by inspecting the node for its first/last token, plus the tokens of the
+    # child nodes, then removing all newlines in between (as long as there were
+    # no comments). However that likely won't work for things like
+    # function/class definitions where the AST nodes full range includes the
+    # function/class body as well as the part we're interested in.
+    #
+    # There might still be something in the idea of finding the bounds of the
+    # node (and in fact that may also be useful for the issue of wrapping
+    # generators, whose bounds are poorly defined), but I no longer think this
+    # can be fully generic.
+    #
+    # We're therefore back to the original idea of running the wrapper logic to
+    # find the wrapping points and then removing them where they exist.
     raise NotImplementedError
 
 
