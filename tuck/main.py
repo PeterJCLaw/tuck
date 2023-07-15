@@ -189,4 +189,6 @@ def process(
         for node in nodes
     )
 
+    insertions.sort()
+
     return insertions

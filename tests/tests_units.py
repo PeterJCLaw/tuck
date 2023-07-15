@@ -123,6 +123,27 @@ class TestMultiEditing(BaseWrapperTestCase):
             """,
         )
 
+    def test_same_line_reverse_order(self) -> None:
+        # Not completely sure why you'd want to do this, but it proves that
+        # we're actually validating that the edits don't overlap, rather that
+        # not being in the same statement or something else.
+        self.assertTransforms(
+            [
+                tuck.Position(1, 30),
+                tuck.Position(1, 10),
+            ],
+            """
+            func({'abcd': 1234}, bar(ghij=5432))
+            """,
+            """
+            func({
+                'abcd': 1234,
+            }, bar(
+                ghij=5432,
+            ))
+            """,
+        )
+
     def test_separate_lines(self) -> None:
         self.assertTransforms(
             [
