@@ -179,10 +179,10 @@ def process(
         # that the error is not within asttokens itself.
         raise TargetSyntaxError(e) from e
 
-    nodes = [
+    nodes = set(
         determine_node(asttokens, position)
         for position in positions
-    ]
+    )
 
     insertions = merge_insertions(
         determine_insertions(asttokens, node)

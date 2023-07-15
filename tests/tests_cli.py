@@ -93,8 +93,8 @@ class TestCli(unittest.TestCase):
         buffer = io.StringIO()
         with contextlib.redirect_stderr(buffer):
             output = self.run_tuck(
-                'print(foo)',
-                ['--positions', '1:1', '1:2'],
+                'print(foo(bar))',
+                ['--edits', '--positions', '1:1', '1:8'],
             )
 
         self.assertIn(
@@ -128,8 +128,8 @@ class TestCli(unittest.TestCase):
         buffer = io.StringIO()
         with contextlib.redirect_stderr(buffer):
             output = self.run_tuck(
-                'print(foo)',
-                ['--edits', '--positions', '1:1', '1:2'],
+                'print(foo(bar))',
+                ['--edits', '--positions', '1:1', '1:8'],
             )
 
         data = json.loads(buffer.getvalue())

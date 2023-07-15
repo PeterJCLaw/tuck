@@ -77,17 +77,20 @@ class TestNodeSearchFailures(BaseWrapperTestCase):
 
 class TestMultiEditing(BaseWrapperTestCase):
     def test_overlap_same_statement(self) -> None:
-        with self.assertRaises(tuck.EditsOverlapError):
-            self.assertTransforms(
-                [
-                    tuck.Position(1, 8),
-                    tuck.Position(1, 12),
-                ],
-                """
-                foo = {'abcd': 1234}
-                """,
-                "",
-            )
+        self.assertTransforms(
+            [
+                tuck.Position(1, 8),
+                tuck.Position(1, 12),
+            ],
+            """
+            foo = {'abcd': 1234}
+            """,
+            """
+            foo = {
+                'abcd': 1234,
+            }
+            """,
+        )
 
     def test_overlap_nested_statement(self) -> None:
         with self.assertRaises(tuck.EditsOverlapError):
