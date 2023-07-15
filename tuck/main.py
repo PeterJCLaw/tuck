@@ -123,13 +123,14 @@ def remove_redundant_wrapping_operations(
     return wrapping_summary
 
 
-def determine_insertions(asttokens: ASTTokens, position: Position) -> list[Insertion]:
+def determine_node(asttokens: ASTTokens, position: Position) -> ast.AST:
     finder = NodeFinder(position, WRAPPABLE_NODE_TYPES)
     assert asttokens.tree is not None
     finder.visit(asttokens.tree)
+    return finder.get_found_node(asttokens)
 
-    node = finder.get_found_node(asttokens)
 
+def determine_insertions(asttokens: ASTTokens, node: ast.AST) -> list[Insertion]:
     # Note: insertions are actually applied in reverse, though we'll generate
     # them forwards.
 
@@ -178,9 +179,14 @@ def process(
         # that the error is not within asttokens itself.
         raise TargetSyntaxError(e) from e
 
-    insertions = merge_insertions(
-        determine_insertions(asttokens, position)
+    nodes = [
+        determine_node(asttokens, position)
         for position in positions
+    ]
+
+    insertions = merge_insertions(
+        determine_insertions(asttokens, node)
+        for node in nodes
     )
 
     return insertions
