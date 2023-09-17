@@ -2,7 +2,8 @@
 flake8>=3.8
 flake8-bugbear
 flake8-builtins
-flake8-commas
+# my fork of flake8-commas supports Python 3.12
+git+https://github.com/PeterJCLaw/flake8-commas
 flake8-comprehensions
 flake8-debugger
 flake8-isort
