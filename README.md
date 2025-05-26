@@ -57,3 +57,17 @@ wraps to:
     if x.isupper()
 ]
 ```
+
+## Development
+
+Setup with:
+
+``` bash
+pip install -r script/requirements-dev.txt -e .
+```
+
+Run validations with:
+
+``` bash
+./script/check
+```
